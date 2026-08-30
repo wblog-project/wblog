@@ -123,7 +123,12 @@ function commandPages(args) {
   const siteUrl = flag(flags, 'site', config.site?.url);
   if (!siteUrl || siteUrl === true || !validUrl(siteUrl)) fail('Set a valid site.url or pass --site <https://...>.');
   const buildEnvironment = { ...process.env, WBLOG_BASE: '', WBLOG_SITE_URL: String(siteUrl).replace(/\/$/, '') };
-  const gitEnvironment = { ...process.env, GIT_SSH_COMMAND: 'ssh -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2' };
+  // Preserve an explicit SSH transport (for example a local SOCKS proxy) while
+  // retaining sensible timeouts for the normal direct-SSH case.
+  const gitEnvironment = {
+    ...process.env,
+    GIT_SSH_COMMAND: process.env.GIT_SSH_COMMAND || 'ssh -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2',
+  };
   run('npm', ['run', 'build'], { env: buildEnvironment });
   const temporaryRepo = mkdtempSync(path.join(os.tmpdir(), 'wblog-pages-'));
   try {
