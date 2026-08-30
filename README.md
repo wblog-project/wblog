@@ -55,6 +55,7 @@ npm run wblog -- help
 
 | 命令 | 作用 |
 | --- | --- |
+| `npm run wblog -- setup` | 交互式配置站点地址、昵称、邮箱、GitHub 与 Steam；每题可直接回车跳过。 |
 | `npm run wblog -- config show` | 查看当前配置。 |
 | `npm run wblog -- config set profile.name "Rex"` | 快速修改任意配置字段。 |
 | `npm run wblog -- post new "Hello wblog" --tags Notes,Astro` | 创建博客文章。 |
@@ -66,7 +67,7 @@ npm run wblog -- help
 | `npm run wblog -- doctor` | 检查 Node、Git、配置和已引用图片。 |
 | `npm run wblog -- deploy --message "content: weekly photos"` | 构建、测试、提交并推送，让 GitHub Pages 自动发布。 |
 
-每个子命令都带有详细说明与示例，例如 `npm run wblog -- help gallery`。创建内容时，CLI 不会覆盖已有 Markdown 或图片；复制的图片会进入对应的 `public/images/life/...` 或 `public/images/gallery/...` 目录。
+每个子命令都带有详细说明与示例，例如 `npm run wblog -- help gallery`。`setup` 的每一项直接回车都会跳过并保留原值；输入 Steam 64 位 ID 会自动启用 Steam 构建时同步。创建内容时，CLI 不会覆盖已有 Markdown 或图片；复制的图片会进入对应的 `public/images/life/...` 或 `public/images/gallery/...` 目录。
 
 若希望使用不带 `npm run` 的命令名，可在本地执行一次 `npm link`，随后使用 `wblog help`、`wblog post new ...` 等同样的子命令。
 
