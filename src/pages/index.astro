@@ -51,18 +51,18 @@ const featuredSocials = socials.slice(0, 4);
 
   <section class="content-grid shell">
     {home.modules.dailyLife && <article class="panel daily-panel">
-      <div class="panel-heading"><div><p class="eyebrow"><Icon name="camera" size={14} /> {t('dailyLife')}</p><h2>{t('smallMoments')}</h2></div><a href={withBase('/life')}>{t('viewAll')} <Icon name="arrow-up-right" size={15} /></a></div>
+      <div class="panel-heading"><div><p class="eyebrow"><Icon name="camera" size={14} /> {t('dailyLife')}</p><h2>{t('smallMoments')}</h2></div><a href={withBase('/life')}>{t('viewAll')} {t('dailyLife')} <Icon name="arrow-up-right" size={15} /></a></div>
       {home.modules.gallery && gallery.length > 0 && <div class="mini-gallery">{gallery.map((entry) => <a href={withBase(`/gallery/${entrySlug(entry.id)}`)} aria-label={entry.data.title}><SiteImage src={entry.data.images[0].src} alt={entry.data.images[0].alt} widths={[180, 360]} sizes="140px" /></a>)}</div>}
       {life.length ? <ul class="life-list">{life.map((entry) => <li><span>✦</span><a href={withBase(`/life/${entrySlug(entry.id)}`)}>{entry.data.title}</a><time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date, { month: 'short', day: 'numeric' })}</time></li>)}</ul> : <p class="empty-state">{t('noContent')}</p>}
     </article>}
 
     {home.modules.blog && <article class="panel blog-panel">
-      <div class="panel-heading"><div><p class="eyebrow"><Icon name="code" size={14} /> {t('blog')}</p><h2>{t('thoughts')}</h2></div><a href={withBase('/blog')}>{t('viewAll')} <Icon name="arrow-up-right" size={15} /></a></div>
+      <div class="panel-heading"><div><p class="eyebrow"><Icon name="code" size={14} /> {t('blog')}</p><h2>{t('thoughts')}</h2></div><a href={withBase('/blog')}>{t('viewAll')} {t('blog')} <Icon name="arrow-up-right" size={15} /></a></div>
       {posts.length ? <ul class="post-list">{posts.map((post) => <li>{post.data.cover && <SiteImage src={post.data.cover} alt="" widths={[120]} sizes="60px" />}<div><a href={withBase(`/blog/${entrySlug(post.id)}`)}>{post.data.title}</a><p>{post.data.tags.join(' · ') || 'Notes'}</p></div><time datetime={post.data.date.toISOString()}>{formatDate(post.data.date, { month: 'short', day: 'numeric' })}</time></li>)}</ul> : <p class="empty-state">{t('noContent')}</p>}
     </article>}
 
     {home.modules.gallery && <article class="panel gallery-panel">
-      <div class="panel-heading"><div><p class="eyebrow"><Icon name="camera" size={14} /> {t('gallery')}</p><h2>{t('latestFrames')}</h2></div><a href={withBase('/gallery')}>{t('viewAll')} <Icon name="arrow-up-right" size={15} /></a></div>
+      <div class="panel-heading"><div><p class="eyebrow"><Icon name="camera" size={14} /> {t('gallery')}</p><h2>{t('latestFrames')}</h2></div><a href={withBase('/gallery')}>{t('viewAll')} {t('gallery')} <Icon name="arrow-up-right" size={15} /></a></div>
       <div class="gallery-preview">{gallery.slice(0, 3).map((entry) => <a href={withBase(`/gallery/${entrySlug(entry.id)}`)}><SiteImage src={entry.data.images[0].src} alt={entry.data.images[0].alt} widths={[260, 520]} sizes="220px" /><span>{entry.data.title}</span></a>)}</div>
     </article>}
 
@@ -72,7 +72,7 @@ const featuredSocials = socials.slice(0, 4);
     </article>}
 
     {home.modules.about && <article class="panel about-panel">
-      <div class="panel-heading"><div><p class="eyebrow"><Icon name="heart" size={14} /> {t('about')}</p><h2>{t('aboutTitle')}</h2></div><a href={withBase('/about')}>{t('readMore')} <Icon name="arrow-up-right" size={15} /></a></div>
+      <div class="panel-heading"><div><p class="eyebrow"><Icon name="heart" size={14} /> {t('about')}</p><h2>{t('aboutTitle')}</h2></div><a href={withBase('/about')}>{t('about')} <Icon name="arrow-up-right" size={15} /></a></div>
       <div class="about-copy"><div class="tag-cloud">{home.aboutTags.map((tag) => <span>{tag}</span>)}</div><div class="about-orbit" aria-hidden="true"><span>✦</span><b>{profile.name.slice(0, 1)}</b><span>✧</span></div></div>
     </article>}
   </section>
