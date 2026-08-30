@@ -45,6 +45,14 @@ npm run preview  # 预览生成结果
 
 需要 Node.js 20 或更高版本。构建产物、缓存、依赖和本地密钥已被 `.gitignore` 排除，不会进入仓库。
 
+### 从零开始的首十分钟
+
+1. 保留现有 `config.yml` 并运行 `npm run wblog -- setup`，或复制带完整注释的 [`config.example.yml`](./config.example.yml)：`cp config.example.yml config.yml`。
+2. 将方形头像放到 `public/images/avatar.png`；将宽幅背景放到 `public/images/background.webp`。推荐头像至少 512×512，背景至少 1920×1080。
+3. 在 `config.yml` 填入这两条 `/images/...` 路径。右侧头图使用中心裁切，人物应尽量位于画面中间。
+4. 执行 `npm run wblog -- doctor`，确认 Git、配置和三张已引用图片都正常。
+5. 执行 `npm run wblog -- preview` 本地确认，随后用 `deploy` 和 `pages sync` 发布。
+
 ## wblog 命令行工具
 
 无需手动创建 Markdown、复制照片或记住部署步骤。所有命令从项目根目录执行：
@@ -87,13 +95,13 @@ Steam 同步启用后，将 `STEAM_API_KEY` 写入本地 `.env` 和 GitHub Actio
 | --- | --- |
 | `site.url` | 完整生产域名，例如 `https://your-name.github.io`。 |
 | `site.base` | 个人主页仓库留空；项目 Pages 填写 `/repository-name`。 |
-| `profile` | 昵称、简介、联系邮箱、导航头像与右侧主视觉图片。 |
-| `appearance` | 全站强调色与背景图路径。背景会自动叠加暗色遮罩以保障可读性。 |
+| `profile` | 昵称、简介、联系邮箱、导航头像与右侧主视觉图片。头像宜为正方形；`heroImage` 会按中心裁切。 |
+| `appearance` | 全站强调色与背景图路径。强调色会实际驱动链接与进度条；背景会自动叠加暗色遮罩以保障可读性。 |
 | `navigation` / `socials` | 顶部导航与平台入口。 |
 | `home.modules` | 独立开关活动区、Daily Life、Blog、Gallery、音乐和 About 卡片。 |
 | `integrations` | GitHub、Steam 账号，以及接口不可用时展示的备用活动卡片。 |
 
-图片放进 `public/images` 后，使用以 `/images/` 开头的路径。例如：
+图片放进 `public/images` 后，使用以 `/images/` 开头的路径。不要使用磁盘绝对路径，也不要写成 `public/images/...`。例如：
 
 ```yaml
 profile:

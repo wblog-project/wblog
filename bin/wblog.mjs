@@ -9,6 +9,7 @@ import { parse, stringify } from 'yaml';
 
 const root = process.cwd();
 const configPath = path.join(root, 'config.yml');
+const configGuide = `# wblog site configuration\n# Detailed field-by-field reference: config.example.yml and README.md#配置站点\n# Images live in public/images/ and use /images/... paths. avatar should be square;\n# heroImage uses a centered crop; background should be wide. SteamID64 is 17 digits.\n\n`;
 const usage = `
 wblog — configuration-first static blog helper
 
@@ -62,7 +63,7 @@ function info(message) { console.log(`✓ ${message}`); }
 function project() { if (!existsSync(configPath) || !existsSync(path.join(root, 'package.json'))) fail('Run this command from the wblog project root.'); }
 function run(command, args, options = {}) { const result = spawnSync(command, args, { cwd: root, stdio: 'inherit', ...options }); if (result.error) fail(result.error.message); if (result.status !== 0) process.exit(result.status ?? 1); }
 function readConfig() { project(); return parse(readFileSync(configPath, 'utf8')); }
-function writeConfig(config) { writeFileSync(configPath, stringify(config), 'utf8'); info('Updated config.yml'); }
+function writeConfig(config) { writeFileSync(configPath, `${configGuide}${stringify(config)}`, 'utf8'); info('Updated config.yml'); }
 function dateToday() { return new Date().toISOString().slice(0, 10); }
 function slugify(value) { const slug = value.normalize('NFKC').trim().toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, ''); return slug || `entry-${Date.now()}`; }
 function parseArgs(tokens) { const positionals = []; const flags = new Map(); for (let i = 0; i < tokens.length; i++) { const token = tokens[i]; if (!token.startsWith('--')) { positionals.push(token); continue; } const key = token.slice(2); const next = tokens[i + 1]; const value = next && !next.startsWith('--') ? next : true; if (value !== true) i++; const values = flags.get(key) || []; values.push(value); flags.set(key, values); } return { positionals, flags }; }

@@ -18,7 +18,7 @@ const canonical = new URL(withBase(Astro.url.pathname), deployedSiteUrl).toStrin
     <meta property="og:type" content="website" />
     <title>{title}</title>
   </head>
-  <body style={siteConfig.appearance.background ? `--site-background: url(${assetUrl(siteConfig.appearance.background)})` : undefined}>
+  <body style={`--accent:${siteConfig.appearance.accent};--accent-soft:${siteConfig.appearance.accentSoft};${siteConfig.appearance.background ? `--site-background:url(${assetUrl(siteConfig.appearance.background)})` : ''}`}>
     <div class="site-noise"></div>
     <Header />
     <main><slot /></main>

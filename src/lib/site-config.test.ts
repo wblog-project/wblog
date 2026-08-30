@@ -8,6 +8,7 @@ describe('site configuration', () => {
     expect(config.profile.contactEmail).toContain('@');
   });
   it('prefixes links with the configured GitHub Pages project base', () => {
-    expect(withBase('/blog')).toBe('/wblog/blog');
+    const base = readSiteConfig().site.base.replace(/\/$/, '');
+    expect(withBase('/blog')).toBe(`${base}/blog`);
   });
 });

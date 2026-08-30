@@ -1,0 +1,60 @@
+# Copy this file to config.yml when starting a new site:
+#   cp config.example.yml config.yml
+# Then run: npm run wblog -- setup
+
+site:
+  title: "Your Name's Space"
+  description: "A personal hub for code, games and small moments."
+  url: "https://YOUR_NAME.github.io"
+  # Use /repository-name for a project site; use "" for YOUR_NAME.github.io.
+  base: ""
+  locale: "en"
+
+profile:
+  name: "Your Name"
+  greeting: "Hi, I'm"
+  bio: "Tell visitors who you are and what you enjoy building."
+  # Put a square image in public/images/, e.g. public/images/avatar.png.
+  avatar: "/images/avatar.png"
+  # Put the subject near the center because the hero uses a center crop.
+  heroImage: "/images/avatar.png"
+  status: "Building tiny worlds on the web."
+  contactEmail: "you@example.com"
+
+appearance:
+  accent: "#9d68ff"
+  accentSoft: "#e5b0ff"
+  # Use a wide image, ideally 1920×1080 or larger; leave "" for the default.
+  background: "/images/background.webp"
+
+navigation:
+  - { label: "Home", href: "/" }
+  - { label: "About", href: "/about" }
+  - { label: "Blog", href: "/blog" }
+  - { label: "Gallery", href: "/gallery" }
+
+# Icon names available: github, gamepad-2, badge, tv, twitter.
+socials:
+  - { name: "GitHub", icon: "github", url: "https://github.com/YOUR_NAME" }
+  - { name: "Steam", icon: "gamepad-2", url: "https://steamcommunity.com/id/YOUR_NAME/" }
+
+integrations:
+  github: { enabled: true, username: "YOUR_NAME", maxRepos: 3 }
+  steam:
+    # Use the 17-digit number in /profiles/76561198.../ URLs; a custom /id/ URL
+    # still needs this separate SteamID64 for automatic recent-game syncing.
+    enabled: false
+    steamId: ""
+  fallbackActivities:
+    - { type: "project", title: "Personal Website", subtitle: "Open source project", metric: "Updated recently", href: "https://github.com/YOUR_NAME", image: "" }
+
+home:
+  modules: { activities: true, dailyLife: true, blog: true, gallery: true, music: true, about: true }
+  music: { title: "Song title", artist: "Artist", cover: "", link: "https://music.youtube.com/" }
+  aboutTags: ["Creator", "Night Owl", "Photography"]
+
+footer: "Made with ♥ for the community."
+
+deployment:
+  # Optional: used only by `npm run wblog -- pages sync`.
+  githubPagesRepository: "git@github.com:YOUR_NAME/YOUR_NAME.github.io.git"
