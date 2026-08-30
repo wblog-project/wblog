@@ -1,7 +1,7 @@
 import { siteConfig } from './site-config';
 
 export type ActivityCard = {
-  type: 'github' | 'steam' | string;
+  type: 'github' | 'steam' | 'bilibili' | string;
   title: string;
   subtitle: string;
   metric: string;
@@ -50,8 +50,24 @@ async function steamActivities(): Promise<ActivityCard[]> {
   }));
 }
 
+async function bilibiliActivities(): Promise<ActivityCard[]> {
+  const { enabled, mid, maxVideos } = siteConfig.integrations.bilibili;
+  if (!enabled || !mid) return [];
+  // Public creator archive endpoint. It is fetched only while building; any failure
+  // leaves the homepage usable through the configured fallback activity cards.
+  const data = await fetchJson(`https://api.bilibili.com/x/space/arc/search?mid=${encodeURIComponent(mid)}&pn=1&ps=${maxVideos}&order=pubdate&jsonp=jsonp`);
+  const videos = data?.data?.list?.vlist;
+  if (!Array.isArray(videos)) return [];
+  return videos.map((video) => ({
+    type: 'bilibili', title: video.title || 'New Bilibili video', subtitle: video.description || 'Latest upload on Bilibili',
+    metric: `${Number(video.play || 0).toLocaleString()} plays · ${new Date(Number(video.created || 0) * 1000).toLocaleDateString()}`,
+    href: video.bvid ? `https://www.bilibili.com/video/${video.bvid}/` : `https://space.bilibili.com/${mid}`,
+    image: typeof video.pic === 'string' ? video.pic.replace(/^http:/, 'https:') : '',
+  }));
+}
+
 export async function getActivities(): Promise<ActivityCard[]> {
-  const results = await Promise.allSettled([githubActivities(), steamActivities()]);
+  const results = await Promise.allSettled([githubActivities(), steamActivities(), bilibiliActivities()]);
   const cards = results.flatMap((result) => result.status === 'fulfilled' ? result.value : []);
   return cards.length ? cards : siteConfig.integrations.fallbackActivities;
 }

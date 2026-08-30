@@ -26,6 +26,24 @@ wblog 把首页做成 Personal Hub，而不是传统的文章列表。它将个�
 - **GitHub Pages 就绪**：内置静态构建、站点地图和自动部署工作流，支持个人主页、项目子路径和自定义域名。
 - **响应式设计**：桌面端保留大幅主视觉与卡片层级，移动端自动重排为可触摸的单列体验。
 
+### 外部数据何时请求？
+
+所有外部平台数据都只在**构建时**请求：GitHub 项目、Steam 最近游玩和 Bilibili 最新公开视频会在 `npm run build`、GitHub Actions 发布或 `pages sync` 时拉取并写入静态 HTML。访问者打开页面时不会请求这些平台，也不会看到任何密钥。接口超时、隐私设置或平台限流只会使对应卡片回退为静态活动，不会使构建或已发布的主页不可访问。
+
+## 不只是 Hexo 风格博客
+
+Hexo 很适合把 Markdown 文章发布成快速、稳定的博客。wblog 保留这种静态站点的轻量写作体验，但把首页的主角从「文章归档」换成「你这个人」：博客只是个人空间的一个部分。
+
+| 维度 | Hexo 的典型使用方式 | wblog 的个人主页方式 |
+| --- | --- | --- |
+| 首页 | 文章列表、置顶和分类 | 个人主视觉、状态、平台入口、最近在做什么与生活切片 |
+| 创作动态 | 主要是博客文章 | GitHub 最近项目、Steam 游戏、Bilibili 最新公开视频、VRChat 等同屏呈现 |
+| 生活内容 | 通常需要寻找主题或手写页面 | `life new` 和 `gallery new` 直接维护日常记录与照片画廊 |
+| 配置体验 | 主题配置与插件组合 | 一份 `config.yml`，极简或详细向导逐步收集账号和视觉素材 |
+| 数据边界 | 依赖主题/插件决定 | 仅在构建时请求公开数据；失败会回退到静态卡片，不暴露密钥也不影响访问 |
+
+这意味着访客既可以读文章，也可以一眼看到你的代码、游戏、虚拟世界、视频和最近的生活。它更像一个长期生长的网络名片，而不只是文章容器。
+
 ## 快速开始
 
 ```bash
@@ -47,7 +65,7 @@ npm run preview  # 预览生成结果
 
 ### 从零开始的首十分钟
 
-1. 保留现有 `config.yml` 并运行 `npm run wblog -- setup`，或复制带完整注释的 [`config.example.yml`](./config.example.yml)：`cp config.example.yml config.yml`。
+1. 保留现有 `config.yml` 并运行极简向导 `npm run wblog -- setup --minimal`，或复制带完整注释的 [`config.example.yml`](./config.example.yml)：`cp config.example.yml config.yml`。
 2. 将方形头像放到 `public/images/avatar.png`；将宽幅背景放到 `public/images/background.webp`。推荐头像至少 512×512，背景至少 1920×1080。
 3. 在 `config.yml` 填入这两条 `/images/...` 路径。右侧头图使用中心裁切，人物应尽量位于画面中间。
 4. 执行 `npm run wblog -- doctor`，确认 Git、配置和三张已引用图片都正常。
@@ -63,7 +81,8 @@ npm run wblog -- help
 
 | 命令 | 作用 |
 | --- | --- |
-| `npm run wblog -- setup` | 交互式配置站点地址、昵称、邮箱、GitHub 与 Steam；每题可直接回车跳过。 |
+| `npm run wblog -- setup --minimal` | 两分钟完成站点地址、昵称、邮箱、GitHub、Steam 等核心身份配置。 |
+| `npm run wblog -- setup --detailed` | 继续配置个人简介、头像与背景、VRChat、Bilibili、音乐与 About 标签。 |
 | `npm run wblog -- config show` | 查看当前配置。 |
 | `npm run wblog -- config set profile.name "Rex"` | 快速修改任意配置字段。 |
 | `npm run wblog -- post new "Hello wblog" --tags Notes,Astro` | 创建博客文章。 |
@@ -76,7 +95,7 @@ npm run wblog -- help
 | `npm run wblog -- doctor` | 检查 Node、Git、配置和已引用图片。 |
 | `npm run wblog -- deploy --message "content: weekly photos"` | 构建、测试、提交并推送，让 GitHub Pages 自动发布。 |
 
-每个子命令都带有详细说明与示例，例如 `npm run wblog -- help gallery`。`setup` 的每一项直接回车都会跳过并保留原值；输入 Steam 64 位 ID 会自动启用 Steam 构建时同步。创建内容时，CLI 不会覆盖已有 Markdown 或图片；复制的图片会进入对应的 `public/images/life/...` 或 `public/images/gallery/...` 目录。
+每个子命令都带有详细说明与示例，例如 `npm run wblog -- help gallery`。`setup` 不带参数时会先让你选择模式；每一项直接回车都会跳过并保留原值。`--minimal` 适合先上线一个干净的主页，`--detailed` 则涵盖视觉、VRChat、Bilibili 和兴趣内容。首次运行还会生成一篇 Blog、一条 Daily Life、一张 Gallery 条目及配套测试图，方便直接查看效果；它们使用 `_example-` 文件名并被 `.gitignore` 忽略，向导绝不覆盖你已修改的示例。输入 Steam 64 位 ID 会自动启用 Steam 构建时同步。创建内容时，CLI 不会覆盖已有 Markdown 或图片；复制的图片会进入对应的 `public/images/life/...` 或 `public/images/gallery/...` 目录。
 
 Steam 主页可以输入两种形式：
 
@@ -97,7 +116,7 @@ Steam 同步启用后，将 `STEAM_API_KEY` 写入本地 `.env` 和 GitHub Actio
 | `site.base` | 个人主页仓库留空；项目 Pages 填写 `/repository-name`。 |
 | `profile` | 昵称、简介、联系邮箱、导航头像与右侧主视觉图片。头像宜为正方形；`heroImage` 会按中心裁切。 |
 | `appearance` | 全站强调色与背景图路径。强调色会实际驱动链接与进度条；背景会自动叠加暗色遮罩以保障可读性。 |
-| `navigation` / `socials` | 顶部导航与平台入口。 |
+| `navigation` / `socials` | 顶部导航与平台入口。前四个入口会作为主页的重点平台卡片；可用图标包括 `github`、`gamepad-2`、`badge`（VRChat）、`tv`（Bilibili）、`twitter`、`youtube`、`instagram`。 |
 | `home.modules` | 独立开关活动区、Daily Life、Blog、Gallery、音乐和 About 卡片。 |
 | `integrations` | GitHub、Steam 账号，以及接口不可用时展示的备用活动卡片。 |
 
@@ -114,6 +133,24 @@ appearance:
 
 ## 写内容
 
+### 内容与图片目录
+
+```text
+src/content/
+├── posts/                 # 长文、教程、开发日志
+├── life/                  # 一次日常、一段短记录，可附多张照片
+└── gallery/               # 摄影/插画/作品集条目，使用 cover + images
+public/images/
+├── posts/                 # 文章封面与正文配图
+├── life/<slug>/           # `life new --photo` 自动复制到这里
+├── gallery/<slug>/        # `gallery new --image` 自动复制到这里
+└── examples/              # setup 生成的本地演示图（已忽略）
+```
+
+这个划分是有意的：文章、日常和画廊各自独立排序和展示；图片仍全部位于 `public/images`，因此 Markdown 不会混进二进制文件，也能在 GitHub Pages 项目子路径下正确部署。
+
+图片路径使用**站点相对路径**，而不是电脑磁盘路径：把 `sunset.webp` 放进 `public/images/life/sunset.webp` 后，在 Markdown 或 frontmatter 中写 `/images/life/sunset.webp`。不要写 `/Users/name/Desktop/sunset.webp`、`public/images/life/sunset.webp` 或 `../public/...`。CLI 的 `life new`、`gallery new` 会自动复制并生成这种路径。
+
 ### Blog
 
 在 `src/content/posts` 新建 Markdown 文件：
@@ -129,6 +166,8 @@ draft: false
 ---
 
 Write **Markdown** here.
+
+![正文中的图片](/images/posts/first.webp)
 ```
 
 `draft: true` 的文章不会进入生产构建。文章详情、博客列表和标签页会自动生成。
@@ -148,7 +187,8 @@ Write **Markdown** here.
 
 - **GitHub**：填写 `integrations.github.username` 即可读取公开仓库。GitHub Actions 自带的 `GITHUB_TOKEN` 会自动用于构建。
 - **Steam**：启用 `integrations.steam.enabled`、填写 64 位 `steamId`，并设置 `STEAM_API_KEY`。请确保 Steam 隐私设置允许读取最近游玩记录。
-- **VRChat、Bilibili、音乐等**：首版用社交入口和 `fallbackActivities` 配置卡片，不依赖账户登录或不稳定接口。
+- **Bilibili**：填写 `integrations.bilibili.mid`（空间链接 `https://space.bilibili.com/数字` 中的数字）并启用后，构建时会读取最新公开视频的封面、标题、播放数和跳转链接；不需要 API Key。请求失败时会自动使用回退活动卡片。
+- **VRChat、音乐等**：以主页的社交入口、静态「正在听」卡片和 `fallbackActivities` 表达，不依赖账户登录或不稳定接口。这让个人主页在没有 API 凭据时依然完整可用。
 
 从 [`.env.example`](./.env.example) 复制本地环境变量文件：
 

@@ -1,85 +1,80 @@
 # wblog site configuration
-#
-# Quick start: change the fields marked "CHANGE ME", place your images in
-# public/images/, run `npm run wblog -- doctor`, then publish with
-# `npm run wblog -- deploy` and `npm run wblog -- pages sync`.
-#
-# All local image paths must begin with /images/. They point to files inside
-# public/images/ and work correctly on both project Pages and root Pages.
+# Detailed field-by-field reference: config.example.yml and README.md#配置站点
+# Images live in public/images/ and use /images/... paths. avatar should be square;
+# heroImage uses a centered crop; background should be wide. SteamID64 is 17 digits.
 
 site:
-  # Browser title and default description used by search engines and link previews.
-  title: "REXWind's Space"
-  description: "A personal hub for code, games and small moments."
-  # Root public URL, without a trailing slash. CHANGE ME after forking.
-  url: "https://wblog-project.github.io"
-  # GitHub Pages path: use /repository-name for a project site; use "" only
-  # when this source repository itself is named YOUR_NAME.github.io.
-  base: "/wblog"
-  # Standard BCP 47 locale used for document language and formatted dates.
-  locale: "en"
-
+  title: REXWind's Space
+  description: A personal hub for code, games and small moments.
+  url: https://wblog-project.github.io
+  base: /wblog
+  locale: en
 profile:
-  # Main identity shown in the header, hero and footer. CHANGE ME.
-  name: "REXWind"
-  greeting: "Hi, I'm"
-  bio: "A passionate developer, gamer and VR enthusiast who loves exploring new worlds and building cool things."
-  # A square portrait. Recommended: 512×512 or larger, PNG/WebP/JPG.
-  # Put the file at public/images/avatar.png, then reference it as below.
-  avatar: "/images/avatar.png"
-  # Right-side hero image. The card uses center-crop, so a square or portrait
-  # image with the subject near the middle works best. Leave "" to use a monogram.
-  heroImage: "/images/avatar.png"
-  status: "Building tiny worlds on the web."
-  # Used by the Contact button. This address will be public on the site.
-  contactEmail: "1114864532@qq.com"
-
+  name: REXWind
+  greeting: Hi, I'm
+  bio: AI4Bio graduate student, VRChat player, anime fan, and photography
+    enthusiast. I also enjoy mechanical keyboards and vibe coding small projects
+    for fun.
+  avatar: /images/avatar.png
+  heroImage: /images/avatar.png
+  status: Building tiny worlds on the web.
+  contactEmail: 1114864532@qq.com
 appearance:
-  # CSS colors; use valid hex colors. They drive accents, links and progress bars.
   accent: "#9d68ff"
   accentSoft: "#e5b0ff"
-  # A wide background, ideally 1920×1080 or larger. A dark overlay is applied
-  # automatically for text contrast. Leave "" to use the default star field.
-  background: "/images/blog-background.jpg"
-
-# Top navigation. href values are internal paths; wblog adds site.base for you.
+  background: /images/blog-background.jpg
 navigation:
-  - { label: "Home", href: "/" }
-  - { label: "About", href: "/about" }
-  - { label: "Blog", href: "/blog" }
-  - { label: "Gallery", href: "/gallery" }
-
-# Social cards shown in the hero and platform strip.
-# Built-in icon names: github, gamepad-2, badge, tv, twitter.
+  - label: Home
+    href: /
+  - label: About
+    href: /about
+  - label: Blog
+    href: /blog
+  - label: Gallery
+    href: /gallery
 socials:
-  - { name: "GitHub", icon: "github", url: "https://github.com/REXWindW" }
-  # Steam supports both /id/custom-name/ and /profiles/76561198.../ URLs.
-  - { name: "Steam", icon: "gamepad-2", url: "https://steamcommunity.com/profiles/76561198065948047/" }
-  - { name: "VRChat", icon: "badge", url: "https://vrchat.com/home/user/usr_example" }
-  - { name: "Bilibili", icon: "tv", url: "https://space.bilibili.com/0" }
-  - { name: "X / Twitter", icon: "twitter", url: "https://x.com/username" }
-
+  - name: GitHub
+    icon: github
+    url: https://github.com/REXWindW
+  - name: Steam
+    icon: gamepad-2
+    url: https://steamcommunity.com/profiles/76561198065948047/
+  - name: VRChat
+    icon: badge
+    url: https://vrchat.com/home/user/usr_f263e7c7-44d8-416a-855d-65839b1cfd32
+  - name: Bilibili
+    icon: tv
+    url: https://space.bilibili.com/3144482
+  - name: X / Twitter
+    icon: twitter
+    url: https://x.com/username
 integrations:
   github:
-    # Reads public repositories at build time. Set false to use fallback cards only.
     enabled: true
-    username: "REXWindW"
-    # Number of non-fork repositories shown; valid range is 1–12.
+    username: REXWindW
     maxRepos: 3
   steam:
-    # Set true only after adding STEAM_API_KEY to .env and GitHub Actions Secrets.
     enabled: true
-    # SteamID64: exactly 17 digits. For /profiles/ URLs it is the number in the URL.
-    # For /id/custom-name/ URLs, run `npm run wblog -- setup` to enter it separately.
     steamId: "76561198065948047"
-  # Shown whenever a provider is disabled, private, rate-limited or unavailable.
-  # image may be a local /images/... path or "" for a themed color placeholder.
+  bilibili:
+    # Latest public uploads are fetched during the static build; no API key needed.
+    enabled: true
+    mid: "3144482"
+    maxVideos: 3
   fallbackActivities:
-    - { type: "project", title: "Personal Website", subtitle: "Open source project", metric: "Updated recently", href: "https://github.com/REXWindW", image: "" }
-    - { type: "vrchat", title: "Chill Night Cafe", subtitle: "A favourite VRChat world", metric: "Visit profile", href: "https://vrchat.com/home/", image: "" }
-
+    - type: project
+      title: Personal Website
+      subtitle: Open source project
+      metric: Updated recently
+      href: https://github.com/REXWindW
+      image: ""
+    - type: vrchat
+      title: Chill Night Cafe
+      subtitle: A favourite VRChat world
+      metric: Visit profile
+      href: https://vrchat.com/home/
+      image: ""
 home:
-  # Toggle any homepage card without deleting content. false hides it completely.
   modules:
     activities: true
     dailyLife: true
@@ -88,18 +83,21 @@ home:
     music: true
     about: true
   music:
-    # Static display card; this version does not stream music.
-    title: "Yoru ni Kakeru"
-    artist: "YOASOBI"
-    # Square cover image; leave "" for the built-in color placeholder.
+    title: Yoru ni Kakeru
+    artist: YOASOBI
     cover: ""
-    link: "https://music.youtube.com/"
-  # Short labels displayed in the About card.
-  aboutTags: ["INFJ-T", "Cat Lover", "Night Owl", "Anime & Manga", "Lo-Fi Beats", "Travel", "Photography", "Technology"]
-
-footer: "Made with ♥ for the community."
-
+    link: https://music.youtube.com/
+  aboutTags:
+    - INFP
+    - Cat Lover
+    - Night Owl
+    - AI4Bio
+    - VRChat Player
+    - Anime & Manga
+    - Photography
+    - Mechanical Keyboards
+    - Vibe Coding
+    - Technology
+footer: Made with ♥ for the community.
 deployment:
-  # Optional independent root-domain repository used by `wblog pages sync`.
-  # Leave "" if you only deploy this source repository with GitHub Actions.
-  githubPagesRepository: "git@github.com:wblog-project/wblog-project.github.io.git"
+  githubPagesRepository: git@github.com:wblog-project/wblog-project.github.io.git

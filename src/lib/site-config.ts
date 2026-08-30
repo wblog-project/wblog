@@ -17,6 +17,7 @@ const configSchema = z.object({
   integrations: z.object({
     github: z.object({ enabled: z.boolean(), username: z.string(), maxRepos: z.number().int().min(1).max(12).default(3) }),
     steam: z.object({ enabled: z.boolean(), steamId: z.string() }),
+    bilibili: z.object({ enabled: z.boolean(), mid: z.string(), maxVideos: z.number().int().min(1).max(6).default(3) }),
     fallbackActivities: z.array(activitySchema),
   }),
   home: z.object({

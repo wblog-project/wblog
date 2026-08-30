@@ -1,11 +1,11 @@
 ---
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { withBase } from '../../lib/site-config';
+import { assetUrl, withBase } from '../../lib/site-config';
 export async function getStaticPaths() { const posts = await getCollection('posts'); return posts.filter((post) => !post.data.draft).map((post) => ({ params: { slug: post.id.replace(/\.md$/, '') }, props: { post } })); }
 const { post } = Astro.props;
 const { Content } = await render(post);
 ---
 <BaseLayout title={`${post.data.title} · Blog`} description={post.data.description}>
-  <article class="article shell"><a class="back-link" href={withBase('/blog')}>← Back to blog</a><p class="post-meta">{post.data.date.toLocaleDateString()} · {post.data.tags.join(', ')}</p><h1>{post.data.title}</h1><p class="article-lead">{post.data.description}</p>{post.data.cover && <div class="article-cover" style={`background-image:url(${post.data.cover})`}></div>}<div class="prose"><Content /></div></article>
+  <article class="article shell"><a class="back-link" href={withBase('/blog')}>← Back to blog</a><p class="post-meta">{post.data.date.toLocaleDateString()} · {post.data.tags.join(', ')}</p><h1>{post.data.title}</h1><p class="article-lead">{post.data.description}</p>{post.data.cover && <div class="article-cover" style={`background-image:url(${assetUrl(post.data.cover)})`}></div>}<div class="prose"><Content /></div></article>
 </BaseLayout>

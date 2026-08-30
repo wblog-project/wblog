@@ -1,7 +1,7 @@
 ---
-import { ArrowUpRight, Badge, Camera, ChevronLeft, ChevronRight, Code2, Gamepad2, Github, Heart, Mail, Music2, Sparkles, Tv, Twitter } from 'lucide-astro';
+import { ArrowUpRight, Badge, Camera, ChevronLeft, ChevronRight, Code2, Gamepad2, Github, Heart, Instagram, Mail, Music2, Sparkles, Tv, Twitter, Youtube } from 'lucide-astro';
 const { name, size = 18 } = Astro.props;
-const icons = { github: Github, 'gamepad-2': Gamepad2, badge: Badge, tv: Tv, twitter: Twitter, 'arrow-up-right': ArrowUpRight, sparkles: Sparkles, code: Code2, heart: Heart, camera: Camera, music: Music2, mail: Mail, left: ChevronLeft, right: ChevronRight };
+const icons = { github: Github, 'gamepad-2': Gamepad2, badge: Badge, tv: Tv, twitter: Twitter, youtube: Youtube, instagram: Instagram, 'arrow-up-right': ArrowUpRight, sparkles: Sparkles, code: Code2, heart: Heart, camera: Camera, music: Music2, mail: Mail, left: ChevronLeft, right: ChevronRight };
 const Component = icons[name as keyof typeof icons] || Sparkles;
 ---
 <Component size={size} strokeWidth={1.8} />

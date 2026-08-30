@@ -15,6 +15,7 @@ const [activities, posts, life, gallery] = await Promise.all([
 ]);
 const { profile, socials, home } = siteConfig;
 const hasHeroImage = Boolean(profile.heroImage);
+const featuredSocials = socials.slice(0, 4);
 ---
 <BaseLayout>
   <section class="hero shell">
@@ -22,10 +23,11 @@ const hasHeroImage = Boolean(profile.heroImage);
       <p class="eyebrow"><Icon name="sparkles" size={15} /> {profile.greeting}</p>
       <h1>{profile.name}</h1>
       <p class="hero-bio">{profile.bio}</p>
-      <p class="hero-status">● {profile.status}</p>
+      <p class="hero-status"><span></span>{profile.status}</p>
       <div class="social-row">
         {socials.map((social) => <a href={social.url} target="_blank" rel="noreferrer" aria-label={social.name} title={social.name}><Icon name={social.icon} /></a>)}
       </div>
+      <div class="hero-metrics" aria-label="Homepage overview"><span><b>{socials.length}</b> places to find me</span><span><b>{life.length + gallery.length}</b> recent moments</span></div>
     </div>
     <div class="hero-art" aria-label={`${profile.name} hero artwork`} style={hasHeroImage ? `background-image:url(${assetUrl(profile.heroImage)})` : undefined}>
       <div class="orb orb-one"></div><div class="orb orb-two"></div>
@@ -34,7 +36,7 @@ const hasHeroImage = Boolean(profile.heroImage);
   </section>
 
   <section class="platform-strip shell" aria-label="Platform links">
-    {socials.slice(0, 4).map((social) => <a href={social.url} target="_blank" rel="noreferrer"><Icon name={social.icon} /><span><strong>{social.name}</strong><small>Visit profile</small></span><Icon name="arrow-up-right" size={16} /></a>)}
+    {featuredSocials.map((social) => <a href={social.url} target="_blank" rel="noreferrer"><Icon name={social.icon} /><span><strong>{social.name}</strong><small>{social.name === 'VRChat' ? 'Enter my virtual world' : social.name === 'Bilibili' ? 'Watch my channel' : 'Visit profile'}</small></span><Icon name="arrow-up-right" size={16} /></a>)}
   </section>
 
   {home.modules.activities && (<section class="section shell">

@@ -1,10 +1,10 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { withBase } from '../../lib/site-config';
+import { assetUrl, withBase } from '../../lib/site-config';
 const posts = (await getCollection('posts')).filter((item) => !item.data.draft).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 ---
 <BaseLayout title="Blog · wblog">
   <section class="page-hero shell"><p class="eyebrow">✦ Blog</p><h1>Notes, tutorials & experiences.</h1><p>Everything published here is a Markdown file in <code>src/content/posts</code>.</p></section>
-  <section class="post-grid shell">{posts.map((post) => <article class="post-card"><div class="post-card-cover" style={post.data.cover ? `background-image:url(${post.data.cover})` : undefined}></div><div><p class="post-meta">{post.data.date.toLocaleDateString()} · {post.data.tags.join(', ')}</p><h2><a href={withBase(`/blog/${post.id.replace(/\.md$/, '')}`)}>{post.data.title}</a></h2><p>{post.data.description}</p></div></article>)}</section>
+  <section class="post-grid shell">{posts.map((post) => <article class="post-card"><div class="post-card-cover" style={post.data.cover ? `background-image:url(${assetUrl(post.data.cover)})` : undefined}></div><div><p class="post-meta">{post.data.date.toLocaleDateString()} · {post.data.tags.join(', ')}</p><h2><a href={withBase(`/blog/${post.id.replace(/\.md$/, '')}`)}>{post.data.title}</a></h2><p>{post.data.description}</p></div></article>)}</section>
 </BaseLayout>

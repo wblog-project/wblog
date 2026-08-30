@@ -1,6 +1,6 @@
 # Copy this file to config.yml when starting a new site:
 #   cp config.example.yml config.yml
-# Then run: npm run wblog -- setup
+# Then run: npm run wblog -- setup --minimal
 
 site:
   title: "Your Name's Space"
@@ -33,10 +33,12 @@ navigation:
   - { label: "Blog", href: "/blog" }
   - { label: "Gallery", href: "/gallery" }
 
-# Icon names available: github, gamepad-2, badge, tv, twitter.
+# Icon names available: github, gamepad-2, badge, tv, twitter, youtube, instagram.
 socials:
   - { name: "GitHub", icon: "github", url: "https://github.com/YOUR_NAME" }
   - { name: "Steam", icon: "gamepad-2", url: "https://steamcommunity.com/id/YOUR_NAME/" }
+  - { name: "VRChat", icon: "badge", url: "https://vrchat.com/home/user/usr_xxx" }
+  - { name: "Bilibili", icon: "tv", url: "https://space.bilibili.com/123456" }
 
 integrations:
   github: { enabled: true, username: "YOUR_NAME", maxRepos: 3 }
@@ -45,6 +47,12 @@ integrations:
     # still needs this separate SteamID64 for automatic recent-game syncing.
     enabled: false
     steamId: ""
+  bilibili:
+    # Use the number in https://space.bilibili.com/123456. No API key required.
+    # Latest video cards are fetched at build time and safely fall back if unavailable.
+    enabled: false
+    mid: ""
+    maxVideos: 3
   fallbackActivities:
     - { type: "project", title: "Personal Website", subtitle: "Open source project", metric: "Updated recently", href: "https://github.com/YOUR_NAME", image: "" }
 
