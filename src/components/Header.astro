@@ -1,0 +1,11 @@
+---
+import { assetUrl, siteConfig, withBase } from '../lib/site-config';
+import Icon from './Icon.astro';
+---
+<header class="site-header shell">
+  <a class="brand" href={withBase('/')} aria-label={`${siteConfig.profile.name} home`}><span class="brand-mark">{siteConfig.profile.avatar ? <img src={assetUrl(siteConfig.profile.avatar)} alt="" /> : '✦'}</span>{siteConfig.profile.name}</a>
+  <nav aria-label="Primary navigation">
+    {siteConfig.navigation.map((item) => <a href={withBase(item.href)}>{item.label}</a>)}
+  </nav>
+  <a class="contact-button" href={`mailto:${siteConfig.profile.contactEmail}`}><Icon name="mail" size={15} /> Contact</a>
+</header>

@@ -1,0 +1,6 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+const entries = (await getCollection('gallery')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+<BaseLayout title="Gallery · wblog"><section class="page-hero shell"><p class="eyebrow">✦ Gallery</p><h1>A collection of scenes.</h1><p>Replace these colour studies with paths to your own images in Markdown frontmatter.</p></section><section class="gallery-grid shell">{entries.map((entry, index) => <article class={`gallery-item gallery-item-${index % 4}`} style={entry.data.cover ? `background-image:url(${entry.data.cover})` : undefined}><div><p>{entry.data.date.toLocaleDateString()}</p><h2>{entry.data.title}</h2><span>{entry.data.description}</span></div></article>)}</section></BaseLayout>

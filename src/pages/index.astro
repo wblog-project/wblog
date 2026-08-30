@@ -1,0 +1,63 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ActivityCard from '../components/ActivityCard.astro';
+import Icon from '../components/Icon.astro';
+import { getActivities } from '../lib/activities';
+import { assetUrl, siteConfig, withBase } from '../lib/site-config';
+
+const sortByDate = <T extends { data: { date: Date } }>(items: T[]) => items.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const [activities, posts, life, gallery] = await Promise.all([
+  getActivities(),
+  getCollection('posts').then((items) => sortByDate(items.filter((item) => !item.data.draft)).slice(0, 3)),
+  getCollection('life').then((items) => sortByDate(items).slice(0, 4)),
+  getCollection('gallery').then((items) => sortByDate(items).slice(0, 4)),
+]);
+const { profile, socials, home } = siteConfig;
+const hasHeroImage = Boolean(profile.heroImage);
+---
+<BaseLayout>
+  <section class="hero shell">
+    <div class="hero-copy">
+      <p class="eyebrow"><Icon name="sparkles" size={15} /> {profile.greeting}</p>
+      <h1>{profile.name}</h1>
+      <p class="hero-bio">{profile.bio}</p>
+      <p class="hero-status">● {profile.status}</p>
+      <div class="social-row">
+        {socials.map((social) => <a href={social.url} target="_blank" rel="noreferrer" aria-label={social.name} title={social.name}><Icon name={social.icon} /></a>)}
+      </div>
+    </div>
+    <div class="hero-art" aria-label={`${profile.name} hero artwork`} style={hasHeroImage ? `background-image:url(${assetUrl(profile.heroImage)})` : undefined}>
+      <div class="orb orb-one"></div><div class="orb orb-two"></div>
+      {!hasHeroImage && <span class="hero-monogram">{profile.name.slice(0, 1)}</span>}
+    </div>
+  </section>
+
+  <section class="platform-strip shell" aria-label="Platform links">
+    {socials.slice(0, 4).map((social) => <a href={social.url} target="_blank" rel="noreferrer"><Icon name={social.icon} /><span><strong>{social.name}</strong><small>Visit profile</small></span><Icon name="arrow-up-right" size={16} /></a>)}
+  </section>
+
+  {home.modules.activities && (<section class="section shell">
+    <div class="section-heading"><div><p class="eyebrow"><Icon name="sparkles" size={14} /> Currently exploring</p><h2>What I’m up to lately</h2><p>Recently played games, active projects and virtual worlds.</p></div><div class="scroll-hint">Swipe to explore →</div></div>
+    <div class="activity-scroller" tabindex="0" aria-label="Recent activity cards">
+      {activities.map((item) => <ActivityCard item={item} />)}
+    </div>
+  </section>)}
+
+  <section class="content-grid shell">
+    {home.modules.dailyLife && (<article class="panel daily-panel">
+      <div class="panel-heading"><div><p class="eyebrow"><Icon name="camera" size={14} /> Daily Life</p><h2>Small moments</h2></div><a href={withBase('/life')}>View all <Icon name="arrow-up-right" size={15} /></a></div>
+      <div class="mini-gallery">{gallery.map((entry, index) => <div class={`mini-image mini-image-${index}`} style={entry.data.cover ? `background-image:url(${assetUrl(entry.data.cover)})` : undefined}></div>)}</div>
+      <ul class="life-list">{life.map((entry) => <li><span>✦</span><a href={withBase('/life')}>{entry.data.title}</a><time datetime={entry.data.date.toISOString()}>{entry.data.date.toLocaleDateString(siteConfig.site.locale, { month: 'short', day: 'numeric' })}</time></li>)}</ul>
+    </article>)}
+
+    {home.modules.blog && (<article class="panel blog-panel">
+      <div class="panel-heading"><div><p class="eyebrow"><Icon name="code" size={14} /> Blog</p><h2>Thoughts & builds</h2></div><a href={withBase('/blog')}>View all <Icon name="arrow-up-right" size={15} /></a></div>
+      <ul class="post-list">{posts.map((post) => <li><div class="post-thumb" style={post.data.cover ? `background-image:url(${assetUrl(post.data.cover)})` : undefined}></div><div><a href={withBase(`/blog/${post.id.replace(/\.md$/, '')}`)}>{post.data.title}</a><p>{post.data.tags.join(' · ') || 'Notes'}</p></div><time>{post.data.date.toLocaleDateString(siteConfig.site.locale, { month: 'short', day: 'numeric' })}</time></li>)}</ul>
+    </article>)}
+
+    {home.modules.music && (<article class="panel music-panel"><div class="panel-heading"><div><p class="eyebrow"><Icon name="music" size={14} /> Currently Listening</p><h2>On repeat</h2></div></div><div class="music-player"><div class="album-art" style={home.music.cover ? `background-image:url(${assetUrl(home.music.cover)})` : undefined}>♫</div><div><a href={home.music.link} target="_blank" rel="noreferrer">{home.music.title}</a><p>{home.music.artist}</p><div class="progress"><span></span></div></div><div class="player-controls"><button aria-label="Previous track">◀</button><button aria-label="Play">Ⅱ</button><button aria-label="Next track">▶</button></div></div></article>)}
+
+    {home.modules.about && (<article class="panel about-panel"><div class="panel-heading"><div><p class="eyebrow"><Icon name="heart" size={14} /> About Me</p><h2>A few things about me</h2></div></div><div class="about-copy"><div class="tag-cloud">{home.aboutTags.map((tag) => <span>{tag}</span>)}</div><div class="about-orbit"><span>✦</span><b>{profile.name.slice(0, 1)}</b><span>✧</span></div></div></article>)}
+  </section>
+</BaseLayout>

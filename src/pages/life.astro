@@ -1,0 +1,6 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+const entries = (await getCollection('life')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+<BaseLayout title="Daily Life · wblog"><section class="page-hero shell"><p class="eyebrow">✦ Daily Life</p><h1>Small moments worth keeping.</h1><p>Each entry is a Markdown file with an optional image list.</p></section><section class="life-grid shell">{entries.map((entry, index) => <article class="life-entry"><div class={`life-entry-art life-art-${index % 4}`}>{entry.data.images[0] && <img src={entry.data.images[0]} alt="" />}</div><p class="post-meta">{entry.data.date.toLocaleDateString()}</p><h2>{entry.data.title}</h2><p>{entry.data.summary}</p></article>)}</section></BaseLayout>

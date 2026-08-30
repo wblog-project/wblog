@@ -1,0 +1,5 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../lib/site-config';
+---
+<BaseLayout title={`About · ${siteConfig.site.title}`}><section class="page-hero shell"><p class="eyebrow">✦ About</p><h1>{siteConfig.profile.name}</h1><p>{siteConfig.profile.bio}</p></section><section class="about-page shell"><div class="about-page-art"><span>{siteConfig.profile.name.slice(0, 1)}</span></div><div><h2>{siteConfig.profile.status}</h2><p>This page is intentionally simple: update the profile fields in <code>config.yml</code>, or replace this copy with your own Markdown-driven component later.</p><div class="tag-cloud">{siteConfig.home.aboutTags.map((tag) => <span>{tag}</span>)}</div></div></section></BaseLayout>

@@ -1,0 +1,74 @@
+site:
+  title: "Boru's Space"
+  description: "A personal hub for code, games and small moments."
+  url: "https://wblog-project.github.io"
+  # Keep empty for username.github.io. Use /repository-name for project Pages.
+  base: "/wblog"
+  locale: "en"
+
+profile:
+  name: "Boru"
+  greeting: "Hi, I'm"
+  bio: "A passionate developer, gamer and VR enthusiast who loves exploring new worlds and building cool things."
+  avatar: "/images/avatar.png"
+  # Add a local path such as /images/hero.webp when you have your own artwork.
+  heroImage: "/images/avatar.png"
+  status: "Building tiny worlds on the web."
+  contactEmail: "hello@example.com"
+
+appearance:
+  accent: "#9d68ff"
+  accentSoft: "#e5b0ff"
+  background: "/images/blog-background.jpg"
+
+navigation:
+  - { label: "Home", href: "/" }
+  - { label: "About", href: "/about" }
+  - { label: "Blog", href: "/blog" }
+  - { label: "Gallery", href: "/gallery" }
+
+socials:
+  - { name: "GitHub", icon: "github", url: "https://github.com/username" }
+  - { name: "Steam", icon: "gamepad-2", url: "https://steamcommunity.com/id/username" }
+  - { name: "VRChat", icon: "badge", url: "https://vrchat.com/home/user/usr_example" }
+  - { name: "Bilibili", icon: "tv", url: "https://space.bilibili.com/0" }
+  - { name: "X / Twitter", icon: "twitter", url: "https://x.com/username" }
+
+integrations:
+  github:
+    enabled: true
+    username: "octocat"
+    maxRepos: 3
+  steam:
+    enabled: false
+    steamId: ""
+  fallbackActivities:
+    - type: "project"
+      title: "Personal Website"
+      subtitle: "Open source project"
+      metric: "Updated recently"
+      href: "https://github.com/username"
+      image: ""
+    - type: "vrchat"
+      title: "Chill Night Cafe"
+      subtitle: "A favourite VRChat world"
+      metric: "Visit profile"
+      href: "https://vrchat.com/home/"
+      image: ""
+
+home:
+  modules:
+    activities: true
+    dailyLife: true
+    blog: true
+    gallery: true
+    music: true
+    about: true
+  music:
+    title: "Yoru ni Kakeru"
+    artist: "YOASOBI"
+    cover: ""
+    link: "https://music.youtube.com/"
+  aboutTags: ["INFJ-T", "Cat Lover", "Night Owl", "Anime & Manga", "Lo-Fi Beats", "Travel", "Photography", "Technology"]
+
+footer: "Made with ♥ for the community."
