@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "bin": {
+    "wblog": "./bin/wblog.mjs"
+  },
   "engines": {
     "node": ">=20.0.0"
   },
@@ -10,7 +13,8 @@
     "dev": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "wblog": "node ./bin/wblog.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.3.0",

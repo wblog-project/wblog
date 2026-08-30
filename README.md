@@ -45,6 +45,31 @@ npm run preview  # 预览生成结果
 
 需要 Node.js 20 或更高版本。构建产物、缓存、依赖和本地密钥已被 `.gitignore` 排除，不会进入仓库。
 
+## wblog 命令行工具
+
+无需手动创建 Markdown、复制照片或记住部署步骤。所有命令从项目根目录执行：
+
+```bash
+npm run wblog -- help
+```
+
+| 命令 | 作用 |
+| --- | --- |
+| `npm run wblog -- config show` | 查看当前配置。 |
+| `npm run wblog -- config set profile.name "Rex"` | 快速修改任意配置字段。 |
+| `npm run wblog -- post new "Hello wblog" --tags Notes,Astro` | 创建博客文章。 |
+| `npm run wblog -- life new "A sunny walk" --summary "Spring arrived" --photo ./walk.jpg` | 新建日常记录并复制照片。 |
+| `npm run wblog -- gallery new "Night sky" --description "First frame" --image ./sky.png` | 新建画廊条目并复制一张或多张图片。 |
+| `npm run wblog -- asset add ./avatar.png --to images/profile` | 把任意图片安全复制到 `public/`。 |
+| `npm run wblog -- build` | 运行生产构建。 |
+| `npm run wblog -- preview` | 构建后启动本地生产预览；按 `Ctrl+C` 结束。 |
+| `npm run wblog -- doctor` | 检查 Node、Git、配置和已引用图片。 |
+| `npm run wblog -- deploy --message "content: weekly photos"` | 构建、测试、提交并推送，让 GitHub Pages 自动发布。 |
+
+每个子命令都带有详细说明与示例，例如 `npm run wblog -- help gallery`。创建内容时，CLI 不会覆盖已有 Markdown 或图片；复制的图片会进入对应的 `public/images/life/...` 或 `public/images/gallery/...` 目录。
+
+若希望使用不带 `npm run` 的命令名，可在本地执行一次 `npm link`，随后使用 `wblog help`、`wblog post new ...` 等同样的子命令。
+
 ## 配置站点
 
 个人资料和首页功能全部在 [`config.yml`](./config.yml) 中维护。配置在构建阶段由 schema 校验；缺少字段、格式错误或非法 URL 会给出明确错误。
