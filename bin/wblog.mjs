@@ -47,7 +47,7 @@ Examples:
 `;
 
 const helpByCommand = {
-  setup: `setup\n\n  setup\n    Starts an interactive configuration wizard for the site URL, display name, email, GitHub username, Steam profile URL and Steam ID.\n    Press Enter at any question to leave the current value unchanged. Supplying a Steam ID also enables Steam activity sync.`,
+  setup: `setup\n\n  setup\n    Starts an interactive configuration wizard for the site URL, display name, email, GitHub username, Steam profile URL and Steam ID.\n    Steam accepts both https://steamcommunity.com/id/custom-name/ and https://steamcommunity.com/profiles/76561198.../.\n    A 17-digit ID is detected automatically from /profiles/ URLs; provide it manually only when using an /id/ custom URL.\n    Press Enter at any question to leave the current value unchanged. Supplying a Steam ID enables Steam activity sync.`,
   config: `config\n\n  config show\n    Print the parsed project configuration.\n\n  config set <path> <value>\n    Set a dot-separated value, such as profile.name or home.modules.blog.\n    true, false and numeric values are stored using their native YAML types.\n\n  config wizard\n    Alias for the interactive setup wizard.`,
   post: `post new\n\n  post new <title> [--tags one,two] [--cover /images/cover.webp] [--draft] [--description text] [--date YYYY-MM-DD]\n    Creates src/content/posts/<slug>.md. Existing files are never overwritten.`,
   life: `life new\n\n  life new <title> --summary <text> [--photo file] [--photo file] [--date YYYY-MM-DD]\n    Creates a Daily Life entry and copies every supplied photo to public/images/life/<slug>/.`,
@@ -71,6 +71,8 @@ function flagsOf(flags, name) { return flags.get(name) || []; }
 function scalar(value) { if (value === 'true') return true; if (value === 'false') return false; if (/^-?\d+(\.\d+)?$/.test(value)) return Number(value); return value; }
 function setPath(object, dottedPath, value) { const parts = dottedPath.split('.').filter(Boolean); if (!parts.length) fail('Configuration path cannot be empty.'); let target = object; for (const part of parts.slice(0, -1)) { if (!target[part] || typeof target[part] !== 'object') target[part] = {}; target = target[part]; } target[parts.at(-1)] = value; }
 function validUrl(value) { try { new URL(value); return true; } catch { return false; } }
+function steamIdFromProfile(value) { const match = value.match(/^https?:\/\/steamcommunity\.com\/profiles\/(\d{17})\/?(?:\?.*)?$/i); return match?.[1] || ''; }
+function githubUsernameFromInput(value) { if (!validUrl(value)) return value; const url = new URL(value); if (url.hostname.toLowerCase() !== 'github.com') return value; return url.pathname.split('/').filter(Boolean)[0] || ''; }
 function setSocialUrl(config, name, icon, url) { const existing = config.socials?.find((social) => social.name === name); if (existing) existing.url = url; else { config.socials ||= []; config.socials.push({ name, icon, url }); } }
 function frontmatter(data, body = '') { return `---\n${stringify(data)}---\n\n${body}`; }
 function ensureFresh(file) { if (existsSync(file)) fail(`Refusing to overwrite ${path.relative(root, file)}.`); mkdirSync(path.dirname(file), { recursive: true }); }
@@ -84,24 +86,26 @@ async function commandSetup() {
   const config = readConfig();
   let changed = false;
   const terminal = createInterface({ input: process.stdin, output: process.stdout });
-  const ask = async (label, current = '') => (await terminal.question(`${label}${current ? ` [current: ${current}]` : ''} (Enter to skip): `)).trim();
+  const ask = async (label, current = '', hint = 'Enter to skip') => (await terminal.question(`${label}${current ? ` [current: ${current}]` : ''}\n  ${hint}: `)).trim();
   try {
     console.log('\nwblog guided setup — blank answers leave the current value unchanged.\n');
-    const siteUrl = await ask('Site URL', config.site?.url);
+    const siteUrl = await ask('Site URL', config.site?.url, 'Example: https://YOUR_NAME.github.io — Enter keeps current value');
     if (siteUrl) { if (!validUrl(siteUrl)) fail('Site URL must start with http:// or https://.'); config.site.url = siteUrl.replace(/\/$/, ''); changed = true; }
-    const siteBase = await ask('GitHub Pages base path (for example /my-blog; leave blank to skip)', config.site?.base);
+    const siteBase = await ask('GitHub Pages base path', config.site?.base, 'Use /my-blog for a project site, type / for a root site, or Enter to keep current value');
     if (siteBase) { config.site.base = siteBase === '/' ? '' : `/${siteBase.replace(/^\/+|\/+$/g, '')}`; changed = true; }
     const name = await ask('Display name', config.profile?.name);
     if (name) { config.profile.name = name; changed = true; }
-    const email = await ask('Contact email', config.profile?.contactEmail);
+    const email = await ask('Contact email', config.profile?.contactEmail, 'Used by the Contact button — Enter to skip');
     if (email) { if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fail('Contact email is invalid.'); config.profile.contactEmail = email; changed = true; }
-    const github = await ask('GitHub username', config.integrations?.github?.username);
-    if (github) { config.integrations.github.username = github; setSocialUrl(config, 'GitHub', 'github', `https://github.com/${github}`); changed = true; }
-    const steamProfile = await ask('Steam profile URL', config.socials?.find((social) => social.name === 'Steam')?.url);
-    if (steamProfile) { if (!validUrl(steamProfile)) fail('Steam profile URL must start with http:// or https://.'); setSocialUrl(config, 'Steam', 'gamepad-2', steamProfile); changed = true; }
-    const steamId = await ask('Steam 64-bit ID', config.integrations?.steam?.steamId);
+    const githubInput = await ask('GitHub username or profile URL', config.integrations?.github?.username, 'Examples: REXWindW or https://github.com/REXWindW — Enter to skip');
+    if (githubInput) { const github = githubUsernameFromInput(githubInput); if (!github || /[/?#]/.test(github)) fail('GitHub username or profile URL is invalid.'); config.integrations.github.username = github; setSocialUrl(config, 'GitHub', 'github', `https://github.com/${github}`); changed = true; }
+    const steamProfile = await ask('Steam profile URL', config.socials?.find((social) => social.name === 'Steam')?.url, 'Accepted: /id/custom-name/ or /profiles/76561198000000000/ — Enter to skip');
+    const detectedSteamId = steamProfile ? steamIdFromProfile(steamProfile) : '';
+    if (steamProfile) { if (!validUrl(steamProfile) || !/^https?:\/\/steamcommunity\.com\/(id|profiles)\//i.test(steamProfile)) fail('Use a Steam Community URL beginning with https://steamcommunity.com/id/ or /profiles/.'); setSocialUrl(config, 'Steam', 'gamepad-2', steamProfile); changed = true; }
+    if (detectedSteamId) { config.integrations.steam.steamId = detectedSteamId; config.integrations.steam.enabled = true; changed = true; info(`Detected SteamID64 ${detectedSteamId} from the profile URL.`); }
+    const steamId = await ask('Steam 64-bit ID', detectedSteamId || config.integrations?.steam?.steamId, detectedSteamId ? 'Detected from /profiles/ URL; press Enter to use it, or type another 17-digit ID' : 'Required for build-time sync when using an /id/custom-name/ URL; 17 digits only, or Enter to skip');
     if (steamId) { if (!/^\d{17}$/.test(steamId)) fail('Steam 64-bit ID must contain exactly 17 digits.'); config.integrations.steam.steamId = steamId; config.integrations.steam.enabled = true; changed = true; }
-    if (changed) { writeConfig(config); info('Setup complete. Run `npm run wblog -- doctor` to verify local assets, then `npm run wblog -- deploy` to publish.'); }
+    if (changed) { writeConfig(config); if (config.integrations.steam.enabled) info('Steam sync is enabled. Add STEAM_API_KEY to .env locally and GitHub Actions Secrets before publishing.'); info('Setup complete. Run `npm run wblog -- doctor` to verify local assets, then `npm run wblog -- deploy` to publish.'); }
     else info('No settings changed.');
   } finally { terminal.close(); }
 }

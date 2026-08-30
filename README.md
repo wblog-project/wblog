@@ -70,6 +70,13 @@ npm run wblog -- help
 
 每个子命令都带有详细说明与示例，例如 `npm run wblog -- help gallery`。`setup` 的每一项直接回车都会跳过并保留原值；输入 Steam 64 位 ID 会自动启用 Steam 构建时同步。创建内容时，CLI 不会覆盖已有 Markdown 或图片；复制的图片会进入对应的 `public/images/life/...` 或 `public/images/gallery/...` 目录。
 
+Steam 主页可以输入两种形式：
+
+- `https://steamcommunity.com/id/custom-name/`：自定义主页名；向导会继续要求输入 17 位 SteamID64。
+- `https://steamcommunity.com/profiles/76561198000000000/`：数字主页；向导会自动识别并填入其中的 SteamID64。
+
+Steam 同步启用后，将 `STEAM_API_KEY` 写入本地 `.env` 和 GitHub Actions Secrets；不要把密钥写入 `config.yml`。
+
 若希望使用不带 `npm run` 的命令名，可在本地执行一次 `npm link`，随后使用 `wblog help`、`wblog post new ...` 等同样的子命令。
 
 ## 配置站点
