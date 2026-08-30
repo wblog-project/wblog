@@ -6,7 +6,8 @@ import process from 'node:process';
 
 const root = process.cwd();
 const url = 'http://127.0.0.1:4321/wblog/';
-const report = path.join(root, '.lighthouse-report.json');
+const runCount = process.env.CI ? 3 : 1;
+const reports = Array.from({ length: runCount }, (_, index) => path.join(root, `.lighthouse-report-${index + 1}.json`));
 const preview = spawn('npm', ['run', 'preview', '--', '--host', '127.0.0.1', '--port', '4321'], {
   cwd: root,
   env: { ...process.env, WBLOG_OFFLINE: '1' },
@@ -24,16 +25,24 @@ async function waitForSite() {
 try {
   await waitForSite();
   const executable = path.join(root, 'node_modules/.bin/lighthouse');
-  const result = spawnSync(executable, [url, '--quiet', '--chrome-flags=--headless --no-sandbox', '--only-categories=performance,accessibility,seo', '--skip-audits=robots-txt', '--output=json', `--output-path=${report}`], { cwd: root, stdio: 'inherit' });
-  if (result.status !== 0) process.exit(result.status ?? 1);
-  const data = JSON.parse(readFileSync(report, 'utf8'));
-  const scores = Object.fromEntries(Object.entries(data.categories).map(([name, category]) => [name, category.score]));
-  const cls = data.audits['cumulative-layout-shift'].numericValue;
-  const failedSeoAudits = data.categories.seo.auditRefs
-    .filter(({ id, weight }) => weight > 0 && data.audits[id]?.score !== 1)
-    .map(({ id }) => `${id}: ${data.audits[id]?.title}`)
-    .join('; ');
-  console.log(`Lighthouse: performance ${scores.performance}, accessibility ${scores.accessibility}, SEO ${scores.seo}, CLS ${cls}`);
+  const runs = [];
+  for (const [index, report] of reports.entries()) {
+    const result = spawnSync(executable, [url, '--quiet', '--chrome-flags=--headless --no-sandbox', '--only-categories=performance,accessibility,seo', '--skip-audits=robots-txt', '--output=json', `--output-path=${report}`], { cwd: root, stdio: 'inherit' });
+    if (result.status !== 0) process.exit(result.status ?? 1);
+    const data = JSON.parse(readFileSync(report, 'utf8'));
+    const scores = Object.fromEntries(Object.entries(data.categories).map(([name, category]) => [name, category.score]));
+    const cls = data.audits['cumulative-layout-shift'].numericValue;
+    const failedSeoAudits = data.categories.seo.auditRefs
+      .filter(({ id, weight }) => weight > 0 && data.audits[id]?.score !== 1)
+      .map(({ id }) => `${id}: ${data.audits[id]?.title}`);
+    runs.push({ scores, cls, failedSeoAudits });
+    console.log(`Lighthouse run ${index + 1}/${runCount}: performance ${scores.performance}, accessibility ${scores.accessibility}, SEO ${scores.seo}, CLS ${cls}`);
+  }
+  const median = (values) => [...values].sort((left, right) => left - right)[Math.floor(values.length / 2)];
+  const scores = Object.fromEntries(['performance', 'accessibility', 'seo'].map((name) => [name, median(runs.map((run) => run.scores[name]))]));
+  const cls = median(runs.map((run) => run.cls));
+  const failedSeoAudits = [...new Set(runs.flatMap((run) => run.failedSeoAudits))].join('; ');
+  console.log(`Lighthouse median: performance ${scores.performance}, accessibility ${scores.accessibility}, SEO ${scores.seo}, CLS ${cls}`);
   if (scores.performance < .9 || scores.accessibility < .95 || scores.seo < .95 || cls > .1) {
     if (process.env.GITHUB_ACTIONS) {
       console.error(`::error title=Lighthouse thresholds::Performance ${scores.performance}, accessibility ${scores.accessibility}, SEO ${scores.seo}, CLS ${cls}. Failed SEO audits: ${failedSeoAudits || 'none'}`);
@@ -42,5 +51,5 @@ try {
   }
 } finally {
   preview.kill('SIGTERM');
-  rmSync(report, { force: true });
+  for (const report of reports) rmSync(report, { force: true });
 }
