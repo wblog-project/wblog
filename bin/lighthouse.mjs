@@ -29,10 +29,14 @@ try {
   const data = JSON.parse(readFileSync(report, 'utf8'));
   const scores = Object.fromEntries(Object.entries(data.categories).map(([name, category]) => [name, category.score]));
   const cls = data.audits['cumulative-layout-shift'].numericValue;
+  const failedSeoAudits = data.categories.seo.auditRefs
+    .filter(({ id, weight }) => weight > 0 && data.audits[id]?.score !== 1)
+    .map(({ id }) => `${id}: ${data.audits[id]?.title}`)
+    .join('; ');
   console.log(`Lighthouse: performance ${scores.performance}, accessibility ${scores.accessibility}, SEO ${scores.seo}, CLS ${cls}`);
   if (scores.performance < .9 || scores.accessibility < .95 || scores.seo < .95 || cls > .1) {
     if (process.env.GITHUB_ACTIONS) {
-      console.error(`::error title=Lighthouse thresholds::Performance ${scores.performance}, accessibility ${scores.accessibility}, SEO ${scores.seo}, CLS ${cls}`);
+      console.error(`::error title=Lighthouse thresholds::Performance ${scores.performance}, accessibility ${scores.accessibility}, SEO ${scores.seo}, CLS ${cls}. Failed SEO audits: ${failedSeoAudits || 'none'}`);
     }
     process.exitCode = 1;
   }
