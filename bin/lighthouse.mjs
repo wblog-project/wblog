@@ -30,7 +30,12 @@ try {
   const scores = Object.fromEntries(Object.entries(data.categories).map(([name, category]) => [name, category.score]));
   const cls = data.audits['cumulative-layout-shift'].numericValue;
   console.log(`Lighthouse: performance ${scores.performance}, accessibility ${scores.accessibility}, SEO ${scores.seo}, CLS ${cls}`);
-  if (scores.performance < .9 || scores.accessibility < .95 || scores.seo < .95 || cls > .1) process.exitCode = 1;
+  if (scores.performance < .9 || scores.accessibility < .95 || scores.seo < .95 || cls > .1) {
+    if (process.env.GITHUB_ACTIONS) {
+      console.error(`::error title=Lighthouse thresholds::Performance ${scores.performance}, accessibility ${scores.accessibility}, SEO ${scores.seo}, CLS ${cls}`);
+    }
+    process.exitCode = 1;
+  }
 } finally {
   preview.kill('SIGTERM');
   rmSync(report, { force: true });
