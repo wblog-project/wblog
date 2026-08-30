@@ -196,7 +196,9 @@ function commandPages(args) {
   run('npm', ['run', 'build'], { env: buildEnvironment });
   const temporaryRepo = mkdtempSync(path.join(os.tmpdir(), 'wblog-pages-'));
   try {
-    run('git', ['clone', String(repository), temporaryRepo], { env: gitEnvironment });
+    // A Pages repository contains generated assets only; shallow history makes
+    // publishing much faster and avoids downloading unrelated old deploys.
+    run('git', ['clone', '--depth', '1', String(repository), temporaryRepo], { env: gitEnvironment });
     const hasMain = spawnSync('git', ['-C', temporaryRepo, 'rev-parse', '--verify', 'main'], { stdio: 'ignore' }).status === 0;
     run('git', ['-C', temporaryRepo, 'checkout', ...(hasMain ? ['main'] : ['--orphan', 'main'])]);
     for (const entry of readdirSync(temporaryRepo)) if (entry !== '.git') rmSync(path.join(temporaryRepo, entry), { recursive: true, force: true });
