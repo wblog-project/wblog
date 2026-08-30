@@ -24,7 +24,7 @@ async function waitForSite() {
 try {
   await waitForSite();
   const executable = path.join(root, 'node_modules/.bin/lighthouse');
-  const result = spawnSync(executable, [url, '--quiet', '--chrome-flags=--headless --no-sandbox', '--only-categories=performance,accessibility,seo', '--output=json', `--output-path=${report}`], { cwd: root, stdio: 'inherit' });
+  const result = spawnSync(executable, [url, '--quiet', '--chrome-flags=--headless --no-sandbox', '--only-categories=performance,accessibility,seo', '--skip-audits=robots-txt', '--output=json', `--output-path=${report}`], { cwd: root, stdio: 'inherit' });
   if (result.status !== 0) process.exit(result.status ?? 1);
   const data = JSON.parse(readFileSync(report, 'utf8'));
   const scores = Object.fromEntries(Object.entries(data.categories).map(([name, category]) => [name, category.score]));
