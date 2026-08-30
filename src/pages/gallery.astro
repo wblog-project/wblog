@@ -1,7 +1,13 @@
 ---
 import { getCollection } from 'astro:content';
+import SiteImage from '../components/SiteImage.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { assetUrl } from '../lib/site-config';
-const entries = (await getCollection('gallery')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+import { byNewest, entrySlug } from '../lib/content';
+import { formatDate, t } from '../lib/i18n';
+import { siteConfig, withBase } from '../lib/site-config';
+const entries = byNewest(await getCollection('gallery'));
 ---
-<BaseLayout title="Gallery · wblog"><section class="page-hero shell"><p class="eyebrow">✦ Gallery</p><h1>A collection of scenes.</h1><p>Replace these colour studies with paths to your own images in Markdown frontmatter.</p></section><section class="gallery-grid shell">{entries.map((entry, index) => <article class={`gallery-item gallery-item-${index % 4}`} style={entry.data.cover ? `background-image:url(${assetUrl(entry.data.cover)})` : undefined}><div><p>{entry.data.date.toLocaleDateString()}</p><h2>{entry.data.title}</h2><span>{entry.data.description}</span></div></article>)}</section></BaseLayout>
+<BaseLayout title={`${t('gallery')} · ${siteConfig.site.title}`} description={t('galleryIntro')}>
+  <section class="page-hero shell"><p class="eyebrow">✦ {t('gallery')}</p><h1>{t('galleryTitle')}</h1><p>{t('galleryIntro')}</p></section>
+  <section class="gallery-grid shell">{entries.length ? entries.map((entry) => <article class="gallery-item"><a href={withBase(`/gallery/${entrySlug(entry.id)}`)}><SiteImage src={entry.data.images[0].src} alt={entry.data.images[0].alt} widths={[480, 800]} sizes="(max-width: 700px) 100vw, 50vw" /><span class="gallery-overlay"><small>{formatDate(entry.data.date)}</small><strong>{entry.data.title}</strong><span>{entry.data.description}</span></span></a></article>) : <p class="empty-state">{t('noContent')}</p>}</section>
+</BaseLayout>

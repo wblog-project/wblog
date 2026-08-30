@@ -1,7 +1,6 @@
 # wblog site configuration
 # Detailed field-by-field reference: config.example.yml and README.md#配置站点
-# Images live in public/images/ and use /images/... paths. avatar should be square;
-# heroImage uses a centered crop; background should be wide. SteamID64 is 17 digits.
+# All portable user data lives in site/. Image paths are relative to site/images/.
 
 site:
   title: REXWind's Space
@@ -9,20 +8,22 @@ site:
   url: https://wblog-project.github.io
   base: /wblog
   locale: en
+  ogImage: profile/background.jpg
+  favicon: profile/avatar.png
 profile:
   name: REXWind
   greeting: Hi, I'm
   bio: AI4Bio graduate student, VRChat player, anime fan, and photography
     enthusiast. I also enjoy mechanical keyboards and vibe coding small projects
     for fun.
-  avatar: /images/avatar.png
-  heroImage: /images/avatar.png
+  avatar: profile/avatar.png
+  heroImage: profile/avatar.png
   status: Building tiny worlds on the web.
   contactEmail: 1114864532@qq.com
 appearance:
   accent: "#9d68ff"
   accentSoft: "#e5b0ff"
-  background: /images/blog-background.jpg
+  background: profile/background.jpg
 navigation:
   - label: Home
     href: /

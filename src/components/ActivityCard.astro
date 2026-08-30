@@ -1,13 +1,17 @@
 ---
 import Icon from './Icon.astro';
+import SiteImage from './SiteImage.astro';
 import type { ActivityCard as Activity } from '../lib/activities';
+
 const { item } = Astro.props as { item: Activity };
-const label = item.type === 'github' ? 'GitHub' : item.type === 'steam' ? 'Steam' : item.type === 'vrchat' ? 'VRChat' : item.type === 'bilibili' ? 'Bilibili' : 'Now';
-const icon = item.type === 'github' ? 'github' : item.type === 'steam' ? 'gamepad-2' : item.type === 'vrchat' ? 'badge' : item.type === 'bilibili' ? 'tv' : 'sparkles';
-const compact = item.type === 'github' && !item.image;
+const labels: Record<string, string> = { github: 'GitHub', steam: 'Steam', vrchat: 'VRChat', bilibili: 'Bilibili', project: 'Project' };
+const icons: Record<string, string> = { github: 'github', steam: 'gamepad-2', vrchat: 'badge', bilibili: 'tv', project: 'code' };
 ---
-<a class:list={[`activity-card activity-${item.type}`, { 'activity-card--compact': compact }]} href={item.href} target="_blank" rel="noreferrer">
-  {!compact && <div class="activity-art" style={item.image ? `background-image:url(${item.image})` : undefined}><span><Icon name={icon} /></span></div>}
-  <div class="activity-copy"><div class="activity-kicker">{label}</div><h3>{item.title}</h3><p>{item.subtitle}</p><small>{item.metric}</small></div>
+<a class={`activity-card activity-${item.type}`} href={item.href} target="_blank" rel="noreferrer">
+  {item.image && <div class="activity-art"><SiteImage src={item.image} alt="" widths={[320, 640]} sizes="320px" /></div>}
+  <div class="activity-copy">
+    <div class="activity-kicker"><Icon name={icons[item.type] || 'sparkles'} size={14} /> {labels[item.type] || 'Now'}</div>
+    <h3>{item.title}</h3><p>{item.subtitle}</p><small>{item.metric}</small>
+  </div>
   <Icon name="arrow-up-right" size={17} />
 </a>

@@ -1,10 +1,18 @@
 ---
 import { getCollection } from 'astro:content';
+import SiteImage from '../../components/SiteImage.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { assetUrl, withBase } from '../../lib/site-config';
-const posts = (await getCollection('posts')).filter((item) => !item.data.draft).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+import { byNewest, entrySlug } from '../../lib/content';
+import { formatDate, t } from '../../lib/i18n';
+import { siteConfig, withBase } from '../../lib/site-config';
+const posts = byNewest((await getCollection('posts')).filter((item) => !item.data.draft));
 ---
-<BaseLayout title="Blog · wblog">
-  <section class="page-hero shell"><p class="eyebrow">✦ Blog</p><h1>Notes, tutorials & experiences.</h1><p>Everything published here is a Markdown file in <code>src/content/posts</code>.</p></section>
-  <section class="post-grid shell">{posts.map((post) => <article class="post-card"><div class="post-card-cover" style={post.data.cover ? `background-image:url(${assetUrl(post.data.cover)})` : undefined}></div><div><p class="post-meta">{post.data.date.toLocaleDateString()} · {post.data.tags.join(', ')}</p><h2><a href={withBase(`/blog/${post.id.replace(/\.md$/, '')}`)}>{post.data.title}</a></h2><p>{post.data.description}</p></div></article>)}</section>
+<BaseLayout title={`${t('blog')} · ${siteConfig.site.title}`} description={t('blogIntro')}>
+  <section class="page-hero shell"><p class="eyebrow">✦ {t('blog')}</p><h1>{t('blogTitle')}</h1><p>{t('blogIntro')}</p></section>
+  <section class="post-grid shell">
+    {posts.length ? posts.map((post) => <article class="post-card">
+      <a class="post-card-cover" href={withBase(`/blog/${entrySlug(post.id)}`)}>{post.data.cover && <SiteImage src={post.data.cover} alt={post.data.coverAlt} widths={[480, 800]} sizes="(max-width: 700px) 100vw, 50vw" />}</a>
+      <div><p class="post-meta"><time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time></p><h2><a href={withBase(`/blog/${entrySlug(post.id)}`)}>{post.data.title}</a></h2><p>{post.data.description}</p><div class="tag-links">{post.data.tags.map((tag) => <a href={withBase(`/tags/${encodeURIComponent(tag)}`)}>#{tag}</a>)}</div></div>
+    </article>) : <p class="empty-state">{t('noContent')}</p>}
+  </section>
 </BaseLayout>

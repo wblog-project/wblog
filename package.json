@@ -1,31 +1,39 @@
 {
   "name": "wblog",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "bin": {
     "wblog": "./bin/wblog.mjs"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.19.0"
   },
   "scripts": {
     "dev": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
     "test": "vitest run",
+    "test:e2e": "playwright test",
+    "lighthouse": "node ./bin/lighthouse.mjs",
     "wblog": "node ./bin/wblog.mjs"
   },
   "dependencies": {
-    "@astrojs/sitemap": "^3.3.0",
-    "astro": "^5.7.0",
-    "lucide-astro": "^0.468.0",
-    "yaml": "^2.7.0",
-    "zod": "^3.24.0"
+    "@astrojs/rss": "^4.0.15",
+    "@astrojs/sitemap": "^3.7.3",
+    "@fontsource-variable/dm-sans": "^5.2.8",
+    "@fontsource-variable/space-grotesk": "^5.2.8",
+    "astro": "^7.2.9",
+    "@lucide/astro": "^1.37.0",
+    "yaml": "^2.9.0",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
     "@astrojs/check": "^0.9.10",
-    "typescript": "^5.7.0",
-    "vitest": "^3.1.0"
+    "@playwright/test": "^1.55.0",
+    "lighthouse": "^13.4.1",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.11"
   }
 }

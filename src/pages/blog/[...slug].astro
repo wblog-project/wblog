@@ -1,11 +1,29 @@
 ---
 import { getCollection, render } from 'astro:content';
+import Icon from '../../components/Icon.astro';
+import SiteImage from '../../components/SiteImage.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { assetUrl, withBase } from '../../lib/site-config';
-export async function getStaticPaths() { const posts = await getCollection('posts'); return posts.filter((post) => !post.data.draft).map((post) => ({ params: { slug: post.id.replace(/\.md$/, '') }, props: { post } })); }
-const { post } = Astro.props;
+import { adjacentEntries, byNewest, entrySlug } from '../../lib/content';
+import { formatDate, t } from '../../lib/i18n';
+import { withBase } from '../../lib/site-config';
+export async function getStaticPaths() {
+  const posts = byNewest((await getCollection('posts')).filter((post) => !post.data.draft));
+  return posts.map((post, index) => ({ params: { slug: entrySlug(post.id) }, props: { post, ...adjacentEntries(posts, index) } }));
+}
+const { post, previous, next } = Astro.props;
 const { Content } = await render(post);
 ---
-<BaseLayout title={`${post.data.title} · Blog`} description={post.data.description}>
-  <article class="article shell"><a class="back-link" href={withBase('/blog')}>← Back to blog</a><p class="post-meta">{post.data.date.toLocaleDateString()} · {post.data.tags.join(', ')}</p><h1>{post.data.title}</h1><p class="article-lead">{post.data.description}</p>{post.data.cover && <div class="article-cover" style={`background-image:url(${assetUrl(post.data.cover)})`}></div>}<div class="prose"><Content /></div></article>
+<BaseLayout title={`${post.data.title} · Blog`} description={post.data.description} image={post.data.cover} type="article" published={post.data.date} updated={post.data.updated} tags={post.data.tags}>
+  <article class="article shell">
+    <a class="back-link" href={withBase('/blog')}>← {t('backBlog')}</a>
+    <p class="post-meta"><time datetime={post.data.date.toISOString()}>{t('published')} {formatDate(post.data.date)}</time>{post.data.updated && <> · <time datetime={post.data.updated.toISOString()}>{t('updated')} {formatDate(post.data.updated)}</time></>}</p>
+    <h1>{post.data.title}</h1><p class="article-lead">{post.data.description}</p>
+    <div class="tag-links">{post.data.tags.map((tag) => <a href={withBase(`/tags/${encodeURIComponent(tag)}`)}>#{tag}</a>)}</div>
+    {post.data.cover && <div class="article-cover"><SiteImage src={post.data.cover} alt={post.data.coverAlt} widths={[640, 960, 1280]} sizes="min(100vw, 800px)" loading="eager" /></div>}
+    <div class="prose"><Content /></div>
+    <nav class="article-navigation" aria-label="Adjacent posts">
+      {previous ? <a href={withBase(`/blog/${entrySlug(previous.id)}`)}><Icon name="left" /><small>{t('previous')}</small><strong>{previous.data.title}</strong></a> : <span></span>}
+      {next && <a class="next" href={withBase(`/blog/${entrySlug(next.id)}`)}><small>{t('next')}</small><strong>{next.data.title}</strong><Icon name="right" /></a>}
+    </nav>
+  </article>
 </BaseLayout>

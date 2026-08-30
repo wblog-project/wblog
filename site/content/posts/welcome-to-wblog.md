@@ -3,13 +3,14 @@ title: "Welcome to wblog"
 date: 2026-08-30
 description: "A small, configuration-first personal hub built with Astro."
 tags: ["Guide", "Astro"]
-cover: ""
+cover: "../../images/profile/background.jpg"
+coverAlt: "Blue winter landscape with an anime character"
 draft: false
 ---
 
 ## Your new home on the web
 
-wblog keeps the things you change often close to the content: edit `config.yml`, add a Markdown file, and publish.
+wblog keeps everything you own in one portable folder: edit `site/config.yml`, add Markdown under `site/content`, and publish.
 
 ```yaml
 profile:

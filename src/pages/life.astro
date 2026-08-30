@@ -1,7 +1,13 @@
 ---
 import { getCollection } from 'astro:content';
+import SiteImage from '../components/SiteImage.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { assetUrl } from '../lib/site-config';
-const entries = (await getCollection('life')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+import { byNewest, entrySlug } from '../lib/content';
+import { formatDate, t } from '../lib/i18n';
+import { siteConfig, withBase } from '../lib/site-config';
+const entries = byNewest(await getCollection('life'));
 ---
-<BaseLayout title="Daily Life · wblog"><section class="page-hero shell"><p class="eyebrow">✦ Daily Life</p><h1>Small moments worth keeping.</h1><p>Each entry is a Markdown file with an optional image list.</p></section><section class="life-grid shell">{entries.map((entry, index) => <article class="life-entry"><div class={`life-entry-art life-art-${index % 4}`}>{entry.data.images[0] && <img src={assetUrl(entry.data.images[0])} alt="" />}</div><p class="post-meta">{entry.data.date.toLocaleDateString()}</p><h2>{entry.data.title}</h2><p>{entry.data.summary}</p></article>)}</section></BaseLayout>
+<BaseLayout title={`${t('dailyLife')} · ${siteConfig.site.title}`} description={t('lifeIntro')}>
+  <section class="page-hero shell"><p class="eyebrow">✦ {t('dailyLife')}</p><h1>{t('lifeTitle')}</h1><p>{t('lifeIntro')}</p></section>
+  <section class="life-grid shell">{entries.length ? entries.map((entry) => <article class="life-entry"><a class="life-entry-art" href={withBase(`/life/${entrySlug(entry.id)}`)}><SiteImage src={entry.data.images[0].src} alt={entry.data.images[0].alt} widths={[480, 800]} sizes="(max-width: 700px) 100vw, 50vw" /></a><p class="post-meta"><time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date)}</time></p><h2><a href={withBase(`/life/${entrySlug(entry.id)}`)}>{entry.data.title}</a></h2><p>{entry.data.summary}</p></article>) : <p class="empty-state">{t('noContent')}</p>}</section>
+</BaseLayout>

@@ -1,5 +1,14 @@
 ---
+import { getCollection, render } from 'astro:content';
+import SiteImage from '../components/SiteImage.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { t } from '../lib/i18n';
 import { siteConfig } from '../lib/site-config';
+const page = (await getCollection('pages')).find((entry) => entry.id === 'about');
+if (!page) throw new Error('Create site/content/pages/about.md before building the About page.');
+const { Content } = await render(page);
 ---
-<BaseLayout title={`About · ${siteConfig.site.title}`}><section class="page-hero shell"><p class="eyebrow">✦ About</p><h1>{siteConfig.profile.name}</h1><p>{siteConfig.profile.bio}</p></section><section class="about-page shell"><div class="about-page-art"><span>{siteConfig.profile.name.slice(0, 1)}</span></div><div><h2>{siteConfig.profile.status}</h2><p>This page is intentionally simple: update the profile fields in <code>config.yml</code>, or replace this copy with your own Markdown-driven component later.</p><div class="tag-cloud">{siteConfig.home.aboutTags.map((tag) => <span>{tag}</span>)}</div></div></section></BaseLayout>
+<BaseLayout title={`${page.data.title} · ${siteConfig.site.title}`} description={page.data.description} image={page.data.portrait}>
+  <section class="page-hero shell"><p class="eyebrow">✦ {t('about')}</p><h1>{page.data.title}</h1><p>{page.data.description}</p></section>
+  <article class="about-page shell">{page.data.portrait && <div class="about-page-art"><SiteImage src={page.data.portrait} alt={page.data.portraitAlt} widths={[360, 640]} sizes="280px" loading="eager" /></div>}<div><div class="prose"><Content /></div><div class="tag-cloud">{siteConfig.home.aboutTags.map((tag) => <span>{tag}</span>)}</div></div></article>
+</BaseLayout>

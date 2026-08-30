@@ -1,14 +1,43 @@
 ---
-import { assetUrl, siteConfig, withBase } from '../lib/site-config';
 import Icon from './Icon.astro';
+import SiteImage from './SiteImage.astro';
+import { resolveSiteImage } from '../lib/images';
+import { t } from '../lib/i18n';
+import { siteConfig, withBase } from '../lib/site-config';
+
+const avatar = await resolveSiteImage(siteConfig.profile.avatar);
+const pathname = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (href: string) => {
+  const target = withBase(href).replace(/\/$/, '') || '/';
+  return href === '/' ? pathname === target : pathname === target || pathname.startsWith(`${target}/`);
+};
 ---
-<header class="site-header shell">
-  <a class="brand" href={withBase('/')} aria-label={`${siteConfig.profile.name} home`}><span class="brand-mark">{siteConfig.profile.avatar ? <img src={assetUrl(siteConfig.profile.avatar)} alt="" /> : '✦'}</span>{siteConfig.profile.name}</a>
-  <nav aria-label="Primary navigation">
-    {siteConfig.navigation.map((item) => {
-      const active = Astro.url.pathname === withBase(item.href) || (item.href === '/' && Astro.url.pathname === withBase('/'));
-      return <a class:list={{ active }} href={withBase(item.href)} aria-current={active ? 'page' : undefined}>{item.label}</a>;
-    })}
+<header class="site-header shell" data-header>
+  <a class="brand" href={withBase('/')} aria-label={`${siteConfig.profile.name} ${t('home')}`}>
+    <span class="brand-mark">{avatar ? <SiteImage src={avatar} alt="" widths={[68]} sizes="34px" /> : '✦'}</span>
+    <span>{siteConfig.profile.name}</span>
+  </a>
+  <button class="menu-button" type="button" aria-label={t('menu')} aria-expanded="false" aria-controls="primary-navigation" data-menu-button>
+    <span class="menu-open"><Icon name="menu" /></span><span class="menu-close"><Icon name="close" /></span>
+  </button>
+  <nav id="primary-navigation" aria-label="Primary navigation" data-navigation data-open="false">
+    {siteConfig.navigation.map((item) => <a class:list={{ active: isActive(item.href) }} href={withBase(item.href)} aria-current={isActive(item.href) ? 'page' : undefined}>{item.label}</a>)}
+    <a class="nav-contact" href={`mailto:${siteConfig.profile.contactEmail}`}><Icon name="mail" size={15} /> {t('contact')}</a>
   </nav>
-  <a class="contact-button" href={`mailto:${siteConfig.profile.contactEmail}`}><Icon name="mail" size={15} /> Contact</a>
+  <a class="contact-button" href={`mailto:${siteConfig.profile.contactEmail}`}><Icon name="mail" size={15} /> {t('contact')}</a>
 </header>
+
+<script>
+  const header = document.querySelector('[data-header]');
+  const button = header?.querySelector<HTMLButtonElement>('[data-menu-button]');
+  const navigation = header?.querySelector<HTMLElement>('[data-navigation]');
+  const setOpen = (open: boolean) => {
+    button?.setAttribute('aria-expanded', String(open));
+    navigation?.setAttribute('data-open', String(open));
+    document.body.classList.toggle('menu-open', open);
+    if (open) navigation?.querySelector('a')?.focus();
+  };
+  button?.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
+  navigation?.addEventListener('click', (event) => { if (event.target instanceof Element && event.target.closest('a')) setOpen(false); });
+  window.addEventListener('keydown', (event) => { if (event.key === 'Escape') { setOpen(false); button?.focus(); } });
+</script>

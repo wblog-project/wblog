@@ -1,65 +1,79 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseLayout from '../layouts/BaseLayout.astro';
 import ActivityCard from '../components/ActivityCard.astro';
 import Icon from '../components/Icon.astro';
+import SiteImage from '../components/SiteImage.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
 import { getActivities } from '../lib/activities';
-import { assetUrl, siteConfig, withBase } from '../lib/site-config';
+import { byNewest, entrySlug } from '../lib/content';
+import { resolveSiteImage } from '../lib/images';
+import { formatDate, t } from '../lib/i18n';
+import { siteConfig, withBase } from '../lib/site-config';
 
-const sortByDate = <T extends { data: { date: Date } }>(items: T[]) => items.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-const [activities, posts, life, gallery] = await Promise.all([
-  getActivities(),
-  getCollection('posts').then((items) => sortByDate(items.filter((item) => !item.data.draft)).slice(0, 3)),
-  getCollection('life').then((items) => sortByDate(items).slice(0, 4)),
-  getCollection('gallery').then((items) => sortByDate(items).slice(0, 4)),
+const [activities, allPosts, allLife, allGallery] = await Promise.all([
+  getActivities(), getCollection('posts'), getCollection('life'), getCollection('gallery'),
 ]);
+const posts = byNewest(allPosts.filter((item) => !item.data.draft)).slice(0, 3);
+const life = byNewest(allLife).slice(0, 4);
+const gallery = byNewest(allGallery).slice(0, 4);
 const { profile, socials, home } = siteConfig;
-const hasHeroImage = Boolean(profile.heroImage);
+const heroImage = await resolveSiteImage(profile.heroImage);
+const musicCover = await resolveSiteImage(home.music.cover);
 const featuredSocials = socials.slice(0, 4);
 ---
 <BaseLayout>
   <section class="hero shell">
     <div class="hero-copy">
       <p class="eyebrow"><Icon name="sparkles" size={15} /> {profile.greeting}</p>
-      <h1>{profile.name}</h1>
-      <p class="hero-bio">{profile.bio}</p>
+      <h1>{profile.name}</h1><p class="hero-bio">{profile.bio}</p>
       <p class="hero-status"><span></span>{profile.status}</p>
       <div class="social-row">
         {socials.map((social) => <a href={social.url} target="_blank" rel="noreferrer" aria-label={social.name} title={social.name}><Icon name={social.icon} /></a>)}
       </div>
-      <div class="hero-metrics" aria-label="Homepage overview"><span><b>{socials.length}</b> places to find me</span><span><b>{life.length + gallery.length}</b> recent moments</span></div>
+      <div class="hero-metrics" aria-label="Homepage overview">
+        <span><b>{socials.length}</b>{t('platforms')}</span><span><b>{posts.length + life.length + gallery.length}</b>{t('smallMoments')}</span>
+      </div>
     </div>
-    <div class="hero-art" aria-label={`${profile.name} hero artwork`} style={hasHeroImage ? `background-image:url(${assetUrl(profile.heroImage)})` : undefined}>
-      <div class="orb orb-one"></div><div class="orb orb-two"></div>
-      {!hasHeroImage && <span class="hero-monogram">{profile.name.slice(0, 1)}</span>}
+    <div class="hero-art">
+      {heroImage ? <SiteImage src={heroImage} alt={`${profile.name} hero artwork`} widths={[640, 960, 1280]} sizes="(max-width: 820px) 100vw, 50vw" loading="eager" fetchpriority="high" /> : <span class="hero-monogram">{profile.name.slice(0, 1)}</span>}
+      <div class="hero-glow" aria-hidden="true"></div>
     </div>
   </section>
 
-  <section class="platform-strip shell" aria-label="Platform links">
-    {featuredSocials.map((social) => <a href={social.url} target="_blank" rel="noreferrer"><Icon name={social.icon} /><span><strong>{social.name}</strong><small>{social.name === 'VRChat' ? 'Enter my virtual world' : social.name === 'Bilibili' ? 'Watch my channel' : 'Visit profile'}</small></span><Icon name="arrow-up-right" size={16} /></a>)}
+  <section class="platform-strip shell" aria-label={t('platforms')}>
+    {featuredSocials.map((social) => <a href={social.url} target="_blank" rel="noreferrer"><Icon name={social.icon} /><span><strong>{social.name}</strong><small>{t('visit')}</small></span><Icon name="arrow-up-right" size={16} /></a>)}
   </section>
 
-  {home.modules.activities && (<section class="section shell">
-    <div class="section-heading"><div><p class="eyebrow"><Icon name="sparkles" size={14} /> Currently exploring</p><h2>What I’m up to lately</h2><p>Recently played games, active projects and virtual worlds.</p></div><div class="scroll-hint">Swipe to explore →</div></div>
-    <div class="activity-scroller" tabindex="0" aria-label="Recent activity cards">
-      {activities.map((item) => <ActivityCard item={item} />)}
-    </div>
-  </section>)}
+  {home.modules.activities && <section class="section shell">
+    <div class="section-heading"><div><p class="eyebrow"><Icon name="sparkles" size={14} /> {t('activitiesEyebrow')}</p><h2>{t('activitiesTitle')}</h2><p>{t('activitiesDescription')}</p></div><div class="scroll-hint">{t('swipe')}</div></div>
+    {activities.length ? <div class="activity-scroller" tabindex="0" aria-label={t('activitiesTitle')}>{activities.map((item) => <ActivityCard item={item} />)}</div> : <p class="empty-state">{t('noContent')}</p>}
+  </section>}
 
   <section class="content-grid shell">
-    {home.modules.dailyLife && (<article class="panel daily-panel">
-      <div class="panel-heading"><div><p class="eyebrow"><Icon name="camera" size={14} /> Daily Life</p><h2>Small moments</h2></div><a href={withBase('/life')}>View all <Icon name="arrow-up-right" size={15} /></a></div>
-      <div class="mini-gallery">{gallery.map((entry, index) => <div class={`mini-image mini-image-${index}`} style={entry.data.cover ? `background-image:url(${assetUrl(entry.data.cover)})` : undefined}></div>)}</div>
-      <ul class="life-list">{life.map((entry) => <li><span>✦</span><a href={withBase('/life')}>{entry.data.title}</a><time datetime={entry.data.date.toISOString()}>{entry.data.date.toLocaleDateString(siteConfig.site.locale, { month: 'short', day: 'numeric' })}</time></li>)}</ul>
-    </article>)}
+    {home.modules.dailyLife && <article class="panel daily-panel">
+      <div class="panel-heading"><div><p class="eyebrow"><Icon name="camera" size={14} /> {t('dailyLife')}</p><h2>{t('smallMoments')}</h2></div><a href={withBase('/life')}>{t('viewAll')} <Icon name="arrow-up-right" size={15} /></a></div>
+      {home.modules.gallery && gallery.length > 0 && <div class="mini-gallery">{gallery.map((entry) => <a href={withBase(`/gallery/${entrySlug(entry.id)}`)} aria-label={entry.data.title}><SiteImage src={entry.data.images[0].src} alt={entry.data.images[0].alt} widths={[180, 360]} sizes="140px" /></a>)}</div>}
+      {life.length ? <ul class="life-list">{life.map((entry) => <li><span>✦</span><a href={withBase(`/life/${entrySlug(entry.id)}`)}>{entry.data.title}</a><time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date, { month: 'short', day: 'numeric' })}</time></li>)}</ul> : <p class="empty-state">{t('noContent')}</p>}
+    </article>}
 
-    {home.modules.blog && (<article class="panel blog-panel">
-      <div class="panel-heading"><div><p class="eyebrow"><Icon name="code" size={14} /> Blog</p><h2>Thoughts & builds</h2></div><a href={withBase('/blog')}>View all <Icon name="arrow-up-right" size={15} /></a></div>
-      <ul class="post-list">{posts.map((post) => <li><div class="post-thumb" style={post.data.cover ? `background-image:url(${assetUrl(post.data.cover)})` : undefined}></div><div><a href={withBase(`/blog/${post.id.replace(/\.md$/, '')}`)}>{post.data.title}</a><p>{post.data.tags.join(' · ') || 'Notes'}</p></div><time>{post.data.date.toLocaleDateString(siteConfig.site.locale, { month: 'short', day: 'numeric' })}</time></li>)}</ul>
-    </article>)}
+    {home.modules.blog && <article class="panel blog-panel">
+      <div class="panel-heading"><div><p class="eyebrow"><Icon name="code" size={14} /> {t('blog')}</p><h2>{t('thoughts')}</h2></div><a href={withBase('/blog')}>{t('viewAll')} <Icon name="arrow-up-right" size={15} /></a></div>
+      {posts.length ? <ul class="post-list">{posts.map((post) => <li>{post.data.cover && <SiteImage src={post.data.cover} alt="" widths={[120]} sizes="60px" />}<div><a href={withBase(`/blog/${entrySlug(post.id)}`)}>{post.data.title}</a><p>{post.data.tags.join(' · ') || 'Notes'}</p></div><time datetime={post.data.date.toISOString()}>{formatDate(post.data.date, { month: 'short', day: 'numeric' })}</time></li>)}</ul> : <p class="empty-state">{t('noContent')}</p>}
+    </article>}
 
-    {home.modules.music && (<article class="panel music-panel"><div class="panel-heading"><div><p class="eyebrow"><Icon name="music" size={14} /> Currently Listening</p><h2>On repeat</h2></div></div><div class="music-player"><div class="album-art" style={home.music.cover ? `background-image:url(${assetUrl(home.music.cover)})` : undefined}>♫</div><div><a href={home.music.link} target="_blank" rel="noreferrer">{home.music.title}</a><p>{home.music.artist}</p><div class="progress"><span></span></div></div><div class="player-controls"><button aria-label="Previous track">◀</button><button aria-label="Play">Ⅱ</button><button aria-label="Next track">▶</button></div></div></article>)}
+    {home.modules.gallery && <article class="panel gallery-panel">
+      <div class="panel-heading"><div><p class="eyebrow"><Icon name="camera" size={14} /> {t('gallery')}</p><h2>{t('latestFrames')}</h2></div><a href={withBase('/gallery')}>{t('viewAll')} <Icon name="arrow-up-right" size={15} /></a></div>
+      <div class="gallery-preview">{gallery.slice(0, 3).map((entry) => <a href={withBase(`/gallery/${entrySlug(entry.id)}`)}><SiteImage src={entry.data.images[0].src} alt={entry.data.images[0].alt} widths={[260, 520]} sizes="220px" /><span>{entry.data.title}</span></a>)}</div>
+    </article>}
 
-    {home.modules.about && (<article class="panel about-panel"><div class="panel-heading"><div><p class="eyebrow"><Icon name="heart" size={14} /> About Me</p><h2>A few things about me</h2></div></div><div class="about-copy"><div class="tag-cloud">{home.aboutTags.map((tag) => <span>{tag}</span>)}</div><div class="about-orbit"><span>✦</span><b>{profile.name.slice(0, 1)}</b><span>✧</span></div></div></article>)}
+    {home.modules.music && <article class="panel music-panel">
+      <div class="panel-heading"><div><p class="eyebrow"><Icon name="music" size={14} /> {t('listening')}</p><h2>{t('onRepeat')}</h2></div></div>
+      <a class="music-card" href={home.music.link} target="_blank" rel="noreferrer">{musicCover ? <SiteImage src={musicCover} alt="" widths={[140]} sizes="70px" /> : <span class="album-placeholder">♫</span>}<span><strong>{home.music.title}</strong><small>{home.music.artist}</small></span><Icon name="arrow-up-right" /></a>
+    </article>}
+
+    {home.modules.about && <article class="panel about-panel">
+      <div class="panel-heading"><div><p class="eyebrow"><Icon name="heart" size={14} /> {t('about')}</p><h2>{t('aboutTitle')}</h2></div><a href={withBase('/about')}>{t('readMore')} <Icon name="arrow-up-right" size={15} /></a></div>
+      <div class="about-copy"><div class="tag-cloud">{home.aboutTags.map((tag) => <span>{tag}</span>)}</div><div class="about-orbit" aria-hidden="true"><span>✦</span><b>{profile.name.slice(0, 1)}</b><span>✧</span></div></div>
+    </article>}
   </section>
 </BaseLayout>

@@ -1,8 +1,17 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { withBase } from '../../lib/site-config';
-export async function getStaticPaths() { const posts = (await getCollection('posts')).filter((p) => !p.data.draft); const tags = [...new Set(posts.flatMap((p) => p.data.tags))]; return tags.map((tag) => ({ params: { tag: encodeURIComponent(tag) }, props: { tag, posts: posts.filter((p) => p.data.tags.includes(tag)) } })); }
+import { byNewest, entrySlug } from '../../lib/content';
+import { formatDate, t } from '../../lib/i18n';
+import { siteConfig, withBase } from '../../lib/site-config';
+export async function getStaticPaths() {
+  const posts = byNewest((await getCollection('posts')).filter((post) => !post.data.draft));
+  const tags = [...new Set(posts.flatMap((post) => post.data.tags))];
+  return tags.map((tag) => ({ params: { tag: encodeURIComponent(tag) }, props: { tag, posts: posts.filter((post) => post.data.tags.includes(tag)) } }));
+}
 const { tag, posts } = Astro.props;
 ---
-<BaseLayout title={`#${tag} · Blog`}><section class="page-hero shell"><p class="eyebrow">✦ Tag</p><h1>#{tag}</h1></section><section class="tag-results shell">{posts.map((post) => <a href={withBase(`/blog/${post.id.replace(/\.md$/, '')}`)}><strong>{post.data.title}</strong><span>{post.data.date.toLocaleDateString()}</span></a>)}</section></BaseLayout>
+<BaseLayout title={`#${tag} · ${siteConfig.site.title}`} description={`${t('tag')}: ${tag}`}>
+  <section class="page-hero shell"><p class="eyebrow">✦ {t('tag')}</p><h1>#{tag}</h1></section>
+  <section class="tag-results shell">{posts.map((post) => <a href={withBase(`/blog/${entrySlug(post.id)}`)}><strong>{post.data.title}</strong><time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time></a>)}</section>
+</BaseLayout>

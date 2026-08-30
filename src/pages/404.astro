@@ -1,0 +1,8 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { t } from '../lib/i18n';
+import { withBase } from '../lib/site-config';
+---
+<BaseLayout title={`404 · ${t('notFoundTitle')}`} description={t('notFoundText')} noindex>
+  <section class="not-found shell"><p class="eyebrow">✦ 404</p><h1>{t('notFoundTitle')}</h1><p>{t('notFoundText')}</p><a class="primary-action" href={withBase('/')}>{t('returnHome')}</a></section>
+</BaseLayout>

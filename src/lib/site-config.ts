@@ -3,39 +3,67 @@ import path from 'node:path';
 import { parse } from 'yaml';
 import { z } from 'zod';
 
-const activitySchema = z.object({
-  type: z.string(), title: z.string(), subtitle: z.string(), metric: z.string(),
-  href: z.string().url(), image: z.string(),
-});
+const hexColor = z.string().regex(/^#[0-9a-f]{6}$/i, 'Expected a six-digit hex color');
+const siteImagePath = z.string().refine(
+  (value) => value === '' || (!path.isAbsolute(value) && !value.split(/[\\/]/).includes('..')),
+  'Image paths must be relative to site/images and may not contain ..',
+);
 
-const configSchema = z.object({
-  site: z.object({ title: z.string(), description: z.string(), url: z.string().url(), base: z.string().default(''), locale: z.string().default('en') }),
-  profile: z.object({ name: z.string(), greeting: z.string(), bio: z.string(), avatar: z.string(), heroImage: z.string(), status: z.string(), contactEmail: z.string().email() }),
-  appearance: z.object({ accent: z.string(), accentSoft: z.string(), background: z.string() }),
-  navigation: z.array(z.object({ label: z.string(), href: z.string() })),
-  socials: z.array(z.object({ name: z.string(), icon: z.string(), url: z.string().url() })),
+const activitySchema = z.object({
+  type: z.string().min(1),
+  title: z.string().min(1),
+  subtitle: z.string(),
+  metric: z.string(),
+  href: z.url(),
+  image: z.string(),
+}).strict();
+
+export const configSchema = z.object({
+  site: z.object({
+    title: z.string().min(1),
+    description: z.string().min(1),
+    url: z.url(),
+    base: z.string().regex(/^(|\/[a-z0-9._~-]+)$/i, 'Use an empty base or /repository-name').default(''),
+    locale: z.enum(['en', 'zh-CN']).default('en'),
+    ogImage: siteImagePath.default(''),
+    favicon: siteImagePath.default(''),
+  }).strict(),
+  profile: z.object({
+    name: z.string().min(1),
+    greeting: z.string().min(1),
+    bio: z.string().min(1),
+    avatar: siteImagePath,
+    heroImage: siteImagePath,
+    status: z.string().min(1),
+    contactEmail: z.email(),
+  }).strict(),
+  appearance: z.object({ accent: hexColor, accentSoft: hexColor, background: siteImagePath }).strict(),
+  navigation: z.array(z.object({ label: z.string().min(1), href: z.string().startsWith('/') }).strict()).min(1),
+  socials: z.array(z.object({ name: z.string().min(1), icon: z.string().min(1), url: z.url() }).strict()),
   integrations: z.object({
-    github: z.object({ enabled: z.boolean(), username: z.string(), maxRepos: z.number().int().min(1).max(12).default(3) }),
-    steam: z.object({ enabled: z.boolean(), steamId: z.string() }),
-    bilibili: z.object({ enabled: z.boolean(), mid: z.string(), maxVideos: z.number().int().min(1).max(6).default(3) }),
+    github: z.object({ enabled: z.boolean(), username: z.string(), maxRepos: z.number().int().min(1).max(12).default(3) }).strict(),
+    steam: z.object({ enabled: z.boolean(), steamId: z.string().regex(/^(|\d{17})$/, 'Steam ID must be empty or 17 digits') }).strict(),
+    bilibili: z.object({ enabled: z.boolean(), mid: z.string().regex(/^(|\d+)$/), maxVideos: z.number().int().min(1).max(6).default(3) }).strict(),
     fallbackActivities: z.array(activitySchema),
-  }),
+  }).strict(),
   home: z.object({
-    modules: z.object({ activities: z.boolean(), dailyLife: z.boolean(), blog: z.boolean(), gallery: z.boolean(), music: z.boolean(), about: z.boolean() }),
-    music: z.object({ title: z.string(), artist: z.string(), cover: z.string(), link: z.string().url() }),
-    aboutTags: z.array(z.string()),
-  }),
+    modules: z.object({ activities: z.boolean(), dailyLife: z.boolean(), blog: z.boolean(), gallery: z.boolean(), music: z.boolean(), about: z.boolean() }).strict(),
+    music: z.object({ title: z.string().min(1), artist: z.string().min(1), cover: siteImagePath, link: z.url() }).strict(),
+    aboutTags: z.array(z.string().min(1)),
+  }).strict(),
   footer: z.string(),
-});
+  deployment: z.object({ githubPagesRepository: z.string() }).strict().default({ githubPagesRepository: '' }),
+}).strict();
 
 export type SiteConfig = z.infer<typeof configSchema>;
-const configPath = path.resolve(process.cwd(), 'config.yml');
+export const configPath = path.resolve(process.cwd(), 'site/config.yml');
 
 export function readSiteConfig(): SiteConfig {
   try {
     return configSchema.parse(parse(fs.readFileSync(configPath, 'utf8')));
   } catch (error) {
-    throw new Error(`Invalid config.yml: ${error instanceof Error ? error.message : String(error)}`);
+    const detail = error instanceof z.ZodError ? z.prettifyError(error) : error instanceof Error ? error.message : String(error);
+    throw new Error(`Invalid site/config.yml:\n${detail}`);
   }
 }
 
@@ -44,11 +72,13 @@ export const deployedSiteUrl = process.env.WBLOG_SITE_URL || siteConfig.site.url
 export const deployedSiteBase = process.env.WBLOG_BASE ?? siteConfig.site.base;
 
 export function withBase(pathname: string) {
-  if (/^https?:\/\//.test(pathname)) return pathname;
+  if (/^(https?:|mailto:|tel:)/.test(pathname)) return pathname;
   const base = deployedSiteBase.replace(/\/$/, '');
-  return `${base}${pathname.startsWith('/') ? pathname : `/${pathname}`}`;
+  const normalized = pathname.startsWith('/') ? pathname : `/${pathname}`;
+  if (base && (normalized === base || normalized.startsWith(`${base}/`))) return normalized;
+  return `${base}${normalized}`;
 }
 
-export function assetUrl(pathname: string) {
-  return pathname ? withBase(pathname) : '';
+export function absoluteUrl(pathname: string) {
+  return new URL(withBase(pathname), deployedSiteUrl).toString();
 }

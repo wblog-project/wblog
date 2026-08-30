@@ -1,5 +1,4 @@
-# Copy this file to config.yml when starting a new site:
-#   cp config.example.yml config.yml
+# Copy this file to site/config.yml when starting a new site.
 # Then run: npm run wblog -- setup --minimal
 
 site:
@@ -9,15 +8,17 @@ site:
   # Use /repository-name for a project site; use "" for YOUR_NAME.github.io.
   base: ""
   locale: "en"
+  ogImage: "profile/background.webp"
+  favicon: "profile/avatar.png"
 
 profile:
   name: "Your Name"
   greeting: "Hi, I'm"
   bio: "Tell visitors who you are and what you enjoy building."
-  # Put a square image in public/images/, e.g. public/images/avatar.png.
-  avatar: "/images/avatar.png"
+  # All image paths are relative to site/images/.
+  avatar: "profile/avatar.png"
   # Put the subject near the center because the hero uses a center crop.
-  heroImage: "/images/avatar.png"
+  heroImage: "profile/hero.webp"
   status: "Building tiny worlds on the web."
   contactEmail: "you@example.com"
 
@@ -25,7 +26,7 @@ appearance:
   accent: "#9d68ff"
   accentSoft: "#e5b0ff"
   # Use a wide image, ideally 1920×1080 or larger; leave "" for the default.
-  background: "/images/background.webp"
+  background: "profile/background.webp"
 
 navigation:
   - { label: "Home", href: "/" }
