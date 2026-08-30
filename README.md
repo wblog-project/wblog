@@ -136,13 +136,13 @@ CLI 不会覆盖已有 Markdown 或图片，也拒绝把文件写出 `site/`。
 
 ## GitHub Pages
 
-仓库已包含 `.github/workflows/deploy.yml`。在 GitHub 的 Settings → Pages 中选择 GitHub Actions，随后推送 `main` 即可发布。
+仓库已包含 `.github/workflows/deploy.yml`。工作流默认执行完整测试与构建；若要从源码仓库发布项目型 Pages，请在 Settings → Pages 中选择 GitHub Actions，并添加值为 `true` 的仓库变量 `WBLOG_DEPLOY_PROJECT_PAGES`。
 
 ```bash
 # 检查、测试、构建，确认后提交并推送
 npm run wblog -- deploy --yes --message "content: update site"
 
-# 同步 dist 到单独的根域 Pages 仓库
+# 同步 dist 到单独的根域 Pages 仓库（无需启用上述变量）
 npm run wblog -- pages sync
 ```
 
