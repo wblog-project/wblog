@@ -123,10 +123,11 @@ function commandPages(args) {
   const siteUrl = flag(flags, 'site', config.site?.url);
   if (!siteUrl || siteUrl === true || !validUrl(siteUrl)) fail('Set a valid site.url or pass --site <https://...>.');
   const buildEnvironment = { ...process.env, WBLOG_BASE: '', WBLOG_SITE_URL: String(siteUrl).replace(/\/$/, '') };
+  const gitEnvironment = { ...process.env, GIT_SSH_COMMAND: 'ssh -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2' };
   run('npm', ['run', 'build'], { env: buildEnvironment });
   const temporaryRepo = mkdtempSync(path.join(os.tmpdir(), 'wblog-pages-'));
   try {
-    run('git', ['clone', String(repository), temporaryRepo]);
+    run('git', ['clone', String(repository), temporaryRepo], { env: gitEnvironment });
     const hasMain = spawnSync('git', ['-C', temporaryRepo, 'rev-parse', '--verify', 'main'], { stdio: 'ignore' }).status === 0;
     run('git', ['-C', temporaryRepo, 'checkout', ...(hasMain ? ['main'] : ['--orphan', 'main'])]);
     for (const entry of readdirSync(temporaryRepo)) if (entry !== '.git') rmSync(path.join(temporaryRepo, entry), { recursive: true, force: true });
@@ -141,7 +142,7 @@ function commandPages(args) {
     const changed = spawnSync('git', ['-C', temporaryRepo, 'status', '--porcelain'], { encoding: 'utf8' }).stdout.trim();
     if (!changed) { info('GitHub Pages repository is already up to date.'); return; }
     run('git', ['-C', temporaryRepo, 'commit', '-m', String(flag(flags, 'message', 'deploy: sync wblog static site'))]);
-    run('git', ['-C', temporaryRepo, 'push', '-u', 'origin', 'main']);
+    run('git', ['-C', temporaryRepo, 'push', '-u', 'origin', 'main'], { env: gitEnvironment });
     info(`Synced static site to ${repository}`);
   } finally { rmSync(temporaryRepo, { recursive: true, force: true }); }
 }
