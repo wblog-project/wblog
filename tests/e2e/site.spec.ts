@@ -9,7 +9,7 @@ test('homepage is readable, responsive and accessible', async ({ page }, testInf
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations, results.violations.map((violation) => `${violation.id}: ${violation.help}`).join('\n')).toEqual([]);
   if (testInfo.project.name === 'mobile') {
-    const menu = page.getByRole('button', { name: /menu|菜单/i });
+    const menu = page.locator('[data-menu-button]');
     await expect(menu).toBeVisible();
     await menu.click();
     await expect(menu).toHaveAttribute('aria-expanded', 'true');
