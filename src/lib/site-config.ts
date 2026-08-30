@@ -39,10 +39,12 @@ export function readSiteConfig(): SiteConfig {
 }
 
 export const siteConfig = readSiteConfig();
+export const deployedSiteUrl = process.env.WBLOG_SITE_URL || siteConfig.site.url;
+export const deployedSiteBase = process.env.WBLOG_BASE ?? siteConfig.site.base;
 
 export function withBase(pathname: string) {
   if (/^https?:\/\//.test(pathname)) return pathname;
-  const base = siteConfig.site.base.replace(/\/$/, '');
+  const base = deployedSiteBase.replace(/\/$/, '');
   return `${base}${pathname.startsWith('/') ? pathname : `/${pathname}`}`;
 }
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { createInterface } from 'node:readline/promises';
@@ -26,6 +27,7 @@ Commands:
   gallery new <title> --description <text> --image <file> [--image file]
                                           Add a Gallery entry and copy images
   asset add <file> [--to images/uploads]  Copy a local asset into public/
+  pages sync [--repository URL]            Build and sync static output to a GitHub Pages repo
   build                                   Run the production build
   preview                                 Build then start a local production preview
   test                                    Run unit tests
@@ -40,6 +42,7 @@ Examples:
   npm run wblog -- post new "Hello wblog" --tags Notes,Astro
   npm run wblog -- life new "A sunny walk" --summary "Spring arrived" --photo ~/Desktop/sun.jpg
   npm run wblog -- gallery new "Night sky" --description "First frame" --image ./sky.png
+  npm run wblog -- pages sync
   npm run wblog -- deploy --message "content: add weekly photos"
 `;
 
@@ -50,13 +53,14 @@ const helpByCommand = {
   life: `life new\n\n  life new <title> --summary <text> [--photo file] [--photo file] [--date YYYY-MM-DD]\n    Creates a Daily Life entry and copies every supplied photo to public/images/life/<slug>/.`,
   gallery: `gallery new\n\n  gallery new <title> --description <text> --image <file> [--image file] [--date YYYY-MM-DD]\n    Creates a Gallery entry, copies images to public/images/gallery/<slug>/, and uses the first as cover.`,
   asset: `asset add\n\n  asset add <file> [--to images/uploads]\n    Copies a local file into public/<destination>. The destination must remain inside public/.`,
+  pages: `pages sync\n\n  pages sync [--repository git@github.com:OWNER/OWNER.github.io.git]\n    Builds with a root-domain base path, then publishes only dist/ to the configured GitHub Pages repository.\n    The repository defaults to deployment.githubPagesRepository in config.yml. Source files, node_modules, .env and Git metadata are never copied.`,
   deploy: `deploy\n\n  deploy [--message text] [--no-test]\n    Runs the production build, runs tests unless --no-test is used, stages project files, creates one commit, and pushes origin/main.\n    It never commits .env, dist, node_modules or .astro because they are ignored.`,
 };
 
 function fail(message) { console.error(`\nError: ${message}\nRun \`npm run wblog -- help\` for usage.`); process.exit(1); }
 function info(message) { console.log(`✓ ${message}`); }
 function project() { if (!existsSync(configPath) || !existsSync(path.join(root, 'package.json'))) fail('Run this command from the wblog project root.'); }
-function run(command, args) { const result = spawnSync(command, args, { cwd: root, stdio: 'inherit' }); if (result.error) fail(result.error.message); if (result.status !== 0) process.exit(result.status ?? 1); }
+function run(command, args, options = {}) { const result = spawnSync(command, args, { cwd: root, stdio: 'inherit', ...options }); if (result.error) fail(result.error.message); if (result.status !== 0) process.exit(result.status ?? 1); }
 function readConfig() { project(); return parse(readFileSync(configPath, 'utf8')); }
 function writeConfig(config) { writeFileSync(configPath, stringify(config), 'utf8'); info('Updated config.yml'); }
 function dateToday() { return new Date().toISOString().slice(0, 10); }
@@ -105,6 +109,37 @@ function commandPost(args) { const { positionals, flags } = parseArgs(args); if 
 function commandLife(args) { const { positionals, flags } = parseArgs(args); if (positionals[0] !== 'new' || !positionals.slice(1).join(' ')) fail('Use: life new <title> --summary <text> [--photo file]'); const title = positionals.slice(1).join(' '); const summary = flag(flags, 'summary'); if (!summary || summary === true) fail('Daily Life entries require --summary <text>.'); const slug = slugify(title); const file = path.join(root, 'src/content/life', `${slug}.md`); ensureFresh(file); const images = flagsOf(flags, 'photo').map((source) => imagePublicPath(source, 'life', slug)); writeFileSync(file, frontmatter({ title, date: flag(flags, 'date', dateToday()), summary, images }, 'Write the longer memory here.\n'), 'utf8'); info(`Created ${path.relative(root, file)}${images.length ? ` with ${images.length} photo(s)` : ''}`); }
 function commandGallery(args) { const { positionals, flags } = parseArgs(args); if (positionals[0] !== 'new' || !positionals.slice(1).join(' ')) fail('Use: gallery new <title> --description <text> --image <file>'); const title = positionals.slice(1).join(' '); const description = flag(flags, 'description'); if (!description || description === true) fail('Gallery entries require --description <text>.'); const slug = slugify(title); const sources = flagsOf(flags, 'image'); if (!sources.length) fail('Gallery entries require at least one --image <file>.'); const file = path.join(root, 'src/content/gallery', `${slug}.md`); ensureFresh(file); const images = sources.map((source) => imagePublicPath(source, 'gallery', slug)); writeFileSync(file, frontmatter({ title, date: flag(flags, 'date', dateToday()), description, cover: images[0], images }, 'Add your gallery notes here.\n'), 'utf8'); info(`Created ${path.relative(root, file)} with ${images.length} image(s)`); }
 function commandAsset(args) { const { positionals, flags } = parseArgs(args); if (positionals[0] !== 'add' || !positionals[1]) fail('Use: asset add <file> [--to images/uploads]'); const source = path.resolve(root, positionals[1]); if (!existsSync(source) || !statSync(source).isFile()) fail(`Asset not found: ${positionals[1]}`); const relativeTarget = String(flag(flags, 'to', 'images/uploads')).replace(/^\/+/, ''); const destinationDir = path.resolve(root, 'public', relativeTarget); const publicRoot = path.resolve(root, 'public'); if (!destinationDir.startsWith(`${publicRoot}${path.sep}`) && destinationDir !== publicRoot) fail('Asset destination must remain inside public/.'); mkdirSync(destinationDir, { recursive: true }); const destination = path.join(destinationDir, path.basename(source)); if (existsSync(destination)) fail(`Refusing to overwrite public/${path.relative(publicRoot, destination)}.`); cpSync(source, destination); info(`Copied to public/${path.relative(publicRoot, destination)}`); }
+function commandPages(args) {
+  const { positionals, flags } = parseArgs(args);
+  if (positionals[0] !== 'sync') fail('Use: pages sync [--repository URL]');
+  const config = readConfig();
+  const repository = flag(flags, 'repository', config.deployment?.githubPagesRepository);
+  if (!repository || repository === true) fail('Set deployment.githubPagesRepository or pass --repository <URL>.');
+  const siteUrl = flag(flags, 'site', config.site?.url);
+  if (!siteUrl || siteUrl === true || !validUrl(siteUrl)) fail('Set a valid site.url or pass --site <https://...>.');
+  const buildEnvironment = { ...process.env, WBLOG_BASE: '', WBLOG_SITE_URL: String(siteUrl).replace(/\/$/, '') };
+  run('npm', ['run', 'build'], { env: buildEnvironment });
+  const temporaryRepo = mkdtempSync(path.join(os.tmpdir(), 'wblog-pages-'));
+  try {
+    run('git', ['clone', String(repository), temporaryRepo]);
+    const hasMain = spawnSync('git', ['-C', temporaryRepo, 'rev-parse', '--verify', 'main'], { stdio: 'ignore' }).status === 0;
+    run('git', ['-C', temporaryRepo, 'checkout', ...(hasMain ? ['main'] : ['--orphan', 'main'])]);
+    for (const entry of readdirSync(temporaryRepo)) if (entry !== '.git') rmSync(path.join(temporaryRepo, entry), { recursive: true, force: true });
+    for (const entry of readdirSync(path.join(root, 'dist'))) cpSync(path.join(root, 'dist', entry), path.join(temporaryRepo, entry), { recursive: true });
+    writeFileSync(path.join(temporaryRepo, '.nojekyll'), '');
+    const authorName = spawnSync('git', ['config', 'user.name'], { cwd: root, encoding: 'utf8' }).stdout.trim();
+    const authorEmail = spawnSync('git', ['config', 'user.email'], { cwd: root, encoding: 'utf8' }).stdout.trim();
+    if (!authorName || !authorEmail) fail('Configure Git user.name and user.email before syncing Pages.');
+    run('git', ['-C', temporaryRepo, 'config', 'user.name', authorName]);
+    run('git', ['-C', temporaryRepo, 'config', 'user.email', authorEmail]);
+    run('git', ['-C', temporaryRepo, 'add', '-A']);
+    const changed = spawnSync('git', ['-C', temporaryRepo, 'status', '--porcelain'], { encoding: 'utf8' }).stdout.trim();
+    if (!changed) { info('GitHub Pages repository is already up to date.'); return; }
+    run('git', ['-C', temporaryRepo, 'commit', '-m', String(flag(flags, 'message', 'deploy: sync wblog static site'))]);
+    run('git', ['-C', temporaryRepo, 'push', '-u', 'origin', 'main']);
+    info(`Synced static site to ${repository}`);
+  } finally { rmSync(temporaryRepo, { recursive: true, force: true }); }
+}
 function commandDoctor() { project(); const config = readConfig(); const checks = [ ['Node.js 20+', Number(process.versions.node.split('.')[0]) >= 20], ['Git repository', spawnSync('git', ['rev-parse', '--is-inside-work-tree'], { cwd: root, encoding: 'utf8' }).status === 0], ['Git remote origin', spawnSync('git', ['remote', 'get-url', 'origin'], { cwd: root, encoding: 'utf8' }).status === 0], ['Configured avatar exists', !config.profile?.avatar || existsSync(path.join(root, 'public', config.profile.avatar))], ['Configured hero image exists', !config.profile?.heroImage || existsSync(path.join(root, 'public', config.profile.heroImage))], ['Configured background exists', !config.appearance?.background || existsSync(path.join(root, 'public', config.appearance.background))] ]; let bad = false; for (const [label, ok] of checks) { console.log(`${ok ? '✓' : '✗'} ${label}`); bad ||= !ok; } if (bad) process.exit(1); }
 function commandDeploy(args) { const { flags } = parseArgs(args); run('npm', ['run', 'build']); if (!flag(flags, 'no-test', false)) run('npm', ['test']); const status = spawnSync('git', ['status', '--porcelain'], { cwd: root, encoding: 'utf8' }); if (status.status !== 0) fail('Git is not available. Run wblog doctor for details.'); if (!status.stdout.trim()) { info('Nothing to deploy; working tree is clean.'); return; } run('git', ['add', '.']); run('git', ['commit', '-m', String(flag(flags, 'message', 'content: update wblog site'))]); run('git', ['push', 'origin', 'main']); info('Pushed to GitHub. GitHub Pages will publish after the workflow completes.'); }
 
@@ -117,6 +152,7 @@ else if (command === 'post') commandPost(rest);
 else if (command === 'life') commandLife(rest);
 else if (command === 'gallery') commandGallery(rest);
 else if (command === 'asset') commandAsset(rest);
+else if (command === 'pages') commandPages(rest);
 else if (command === 'build') run('npm', ['run', 'build']);
 else if (command === 'preview') { run('npm', ['run', 'build']); run('npm', ['run', 'preview']); }
 else if (command === 'test') run('npm', ['test']);

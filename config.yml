@@ -72,3 +72,7 @@ home:
   aboutTags: ["INFJ-T", "Cat Lover", "Night Owl", "Anime & Manga", "Lo-Fi Beats", "Travel", "Photography", "Technology"]
 
 footer: "Made with ♥ for the community."
+
+deployment:
+  # `wblog pages sync` publishes the static output here. Leave empty to pass --repository manually.
+  githubPagesRepository: "git@github.com:wblog-project/wblog-project.github.io.git"

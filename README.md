@@ -62,6 +62,7 @@ npm run wblog -- help
 | `npm run wblog -- life new "A sunny walk" --summary "Spring arrived" --photo ./walk.jpg` | 新建日常记录并复制照片。 |
 | `npm run wblog -- gallery new "Night sky" --description "First frame" --image ./sky.png` | 新建画廊条目并复制一张或多张图片。 |
 | `npm run wblog -- asset add ./avatar.png --to images/profile` | 把任意图片安全复制到 `public/`。 |
+| `npm run wblog -- pages sync` | 用根域路径构建，并将仅包含静态产物的站点同步到配置的 GitHub Pages 仓库。 |
 | `npm run wblog -- build` | 运行生产构建。 |
 | `npm run wblog -- preview` | 构建后启动本地生产预览；按 `Ctrl+C` 结束。 |
 | `npm run wblog -- doctor` | 检查 Node、Git、配置和已引用图片。 |
@@ -152,6 +153,23 @@ cp .env.example .env
 4. 推送到 `main`；工作流会安装依赖、拉取可用的平台数据、静态构建并发布。
 
 > 本仓库当前演示站点使用 `https://wblog-project.github.io` 与 `/wblog`。如果你的仓库地址是 `https://YOUR_NAME.github.io/my-site`，应设为 `site.url: https://YOUR_NAME.github.io` 和 `site.base: /my-site`。若仓库是 `YOUR_NAME.github.io`，则 `site.base` 保持为空。
+
+### 同步到独立的根域 Pages 仓库
+
+如果你的站点使用独立的 `YOUR_NAME.github.io` 仓库，在 `config.yml` 填入：
+
+```yaml
+deployment:
+  githubPagesRepository: "git@github.com:YOUR_NAME/YOUR_NAME.github.io.git"
+```
+
+之后运行：
+
+```bash
+npm run wblog -- pages sync
+```
+
+该命令会临时以根域路径构建、生成 `.nojekyll`，然后只把 `dist` 内容推送到目标仓库的 `main` 分支；不会修改源码仓库的 `site.base` 或上传源码、密钥和依赖。
 
 ## 项目结构
 
