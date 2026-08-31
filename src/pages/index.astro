@@ -67,7 +67,7 @@ const vrchatWorldImages = await Promise.all(vrchatPreview.map((world) => world.i
   <section class="content-grid shell">
     {home.modules.dailyLife && <article class="panel daily-panel">
       <div class="panel-heading"><div><p class="eyebrow"><Icon name="camera" size={14} /> {t('dailyLife')}</p><h2>{t('smallMoments')}</h2></div><a href={withBase('/life')}>{t('viewAll')} {t('dailyLife')} <Icon name="arrow-up-right" size={15} /></a></div>
-      {home.modules.gallery && gallery.length > 0 && <div class="mini-gallery">{gallery.map((entry) => <a href={withBase(`/gallery/${entrySlug(entry.id)}`)} aria-label={entry.data.title}><SiteImage src={entry.data.images[0].src} alt={entry.data.images[0].alt} widths={[180, 360]} sizes="140px" /></a>)}</div>}
+      {life.length > 0 && <div class="mini-gallery">{life.map((entry) => <a href={withBase(`/life/${entrySlug(entry.id)}`)} aria-label={entry.data.title}><SiteImage src={entry.data.images[0].src} alt={entry.data.images[0].alt} widths={[180, 360]} sizes="140px" /></a>)}</div>}
       {life.length ? <ul class="life-list">{life.map((entry) => <li><span>✦</span><a href={withBase(`/life/${entrySlug(entry.id)}`)}>{entry.data.title}</a><time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date, { month: 'short', day: 'numeric' })}</time></li>)}</ul> : <p class="empty-state">{t('noContent')}</p>}
     </article>}
 
