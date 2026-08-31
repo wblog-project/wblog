@@ -2,174 +2,140 @@
   <img src="./docs/assets/wblog-logo.png" alt="wblog logo" width="180" />
 </p>
 
-# wblog
+<h1 align="center">wblog</h1>
 
-一个以 Personal Hub 为首页、使用 Markdown 写作的深色二次元静态博客框架。真实配置、文章和图片全部放在私有的 `site/` 目录中；源码仓库只维护不含个人资料的 `template/` 发布模板。
+<p align="center">
+  一个配置优先、内容私有、可整体迁移的 Astro Personal Hub 框架。
+</p>
 
-## 快速开始
+<p align="center">
+  <a href="https://github.com/wblog-project/wblog/actions/workflows/deploy.yml"><img alt="CI" src="https://github.com/wblog-project/wblog/actions/workflows/deploy.yml/badge.svg" /></a>
+  <img alt="version" src="https://img.shields.io/badge/version-0.3.0-9d68ff" />
+  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-%3E%3D22.19-43853d" />
+  <img alt="Astro" src="https://img.shields.io/badge/Astro-7-ff5d01" />
+</p>
+
+<p align="center">
+  <a href="https://wblog-project.github.io/">在线示例</a> ·
+  <a href="./docs/README.md">完整文档</a> ·
+  <a href="./CHANGELOG.md">版本记录</a> ·
+  <a href="./CONTRIBUTING.md">参与贡献</a>
+</p>
+
+---
+
+## 为什么是 wblog
+
+wblog 把“博客程序”和“属于你的资料”划成清晰边界。文章、照片、头像与配置集中在一个被 Git 忽略的 `site/` 目录；公开源码只携带可构建的 `template/`。迁移个人站点时复制一个目录即可，更新框架时也无需把私人内容提交到上游仓库。
+
+| 能力 | 说明 |
+| --- | --- |
+| 私有内容边界 | `site/` 整体忽略，公开模板独立维护 |
+| 完整内容模型 | Blog、Life、Gallery、About、标签、上一篇/下一篇 |
+| 图片管线 | 本地图片生成响应式 AVIF/WebP，保留准确 alt 文本 |
+| 双语界面 | `en` 与 `zh-CN`，覆盖日期、数字和无障碍文案 |
+| 静态集成 | GitHub、Steam、Bilibili 构建时同步，失败时逐平台降级 |
+| 发布能力 | 根域 Pages 仓库与可选 Project Pages，静态产物独立推送 |
+| 质量门禁 | Astro check、Vitest、Playwright、Axe、Lighthouse |
+
+## 5 分钟开始
 
 需要 Node.js 22.19 或更高版本。
 
 ```bash
+git clone git@github.com:wblog-project/wblog.git
+cd wblog
 npm install
+
+# 从公开模板创建被 Git 忽略的私人站点
 npm run wblog -- init
 npm run wblog -- setup --minimal
+
 npm run wblog -- doctor
 npm run dev
 ```
 
-生产检查与预览：
+`init` 只在 `site/` 不存在时执行，不会覆盖已有文章或图片。详细步骤见[安装与初始化](./docs/guide/getting-started.md)。
 
-```bash
-npm test
-npm run build
-npm run preview
-```
-
-真实浏览器验收需要先安装一次 Chromium，然后运行响应式/无障碍测试和 Lighthouse：
-
-```bash
-npx playwright install chromium
-npm run test:e2e
-npm run lighthouse
-```
-
-`init` 只在 `site/` 不存在时复制公开模板，绝不会覆盖已有站点。
-
-## 目录边界
+## 清晰的目录边界
 
 ```text
-site/       # 你的真实站点；被 Git 整体忽略
-template/   # 源码仓库公开维护的可构建示例
-src/        # Astro 框架代码
-bin/        # wblog CLI
-tests/      # 单元、集成与浏览器测试
-docs/       # README 使用的项目素材
+wblog/
+├── site/                  # 私人站点：配置、文章、照片；Git 整体忽略
+├── template/              # 公开发布模板：CI 和新站初始化来源
+│   ├── config.yml
+│   ├── content/{posts,life,gallery,pages}/
+│   └── images/
+├── src/                   # Astro 页面、组件和框架逻辑
+├── bin/                   # wblog CLI 与 Lighthouse 门禁
+├── tests/                 # 浏览器验收测试
+└── docs/                  # 分层使用与维护文档
 ```
 
-### 可整体迁移的用户目录
+`site/` 内部保持适合人直接阅读和迁移的结构：
 
 ```text
 site/
-├── config.yml             # 站点、个人资料、主题、平台与部署配置
+├── config.yml
 ├── content/
 │   ├── posts/             # 博客长文
 │   ├── life/              # 日常记录
 │   ├── gallery/           # 摄影、插画与作品集
 │   └── pages/about.md     # About 页面正文
 └── images/
-    ├── profile/           # 头像、主视觉、背景、OG 图
-    ├── posts/             # 文章图片
-    ├── life/              # 日常照片
-    ├── gallery/           # 画廊图片
-    └── general/           # 通用素材
+    ├── profile/           # 头像、背景、主视觉和 OG 图
+    ├── posts/
+    ├── life/
+    ├── gallery/
+    └── general/
 ```
 
-迁移站点时只需复制 `site/`。`.gitignore` 会忽略整个目录，因此文章、个人配置和原图不会再进入 `wblog` 框架仓库。请把 `site/` 另外备份到私人仓库、云盘或其他可靠位置；Pages 仓库只有生成后的静态文件，不能替代原稿备份。
+> `site/` 不会进入框架仓库，请另外备份到私人仓库、云盘或其他可靠位置。Pages 只有生成后的静态文件，不能代替原稿备份。
 
-`template/` 与 `site/` 结构相同，但只包含通用配置、示例 Markdown 和原版 wblog Logo 占位图。CI 设置 `WBLOG_SITE_DIR=template` 来验证公开发布版本，不会读取本地私人内容。
-
-配置图片路径相对于 `site/images/`：
-
-```yaml
-profile:
-  avatar: profile/avatar.png
-  heroImage: profile/hero.webp
-appearance:
-  background: profile/background.webp
-```
-
-内容中的图片路径相对于 Markdown 文件。例如 `site/content/posts/hello.md` 引用 `site/images/posts/hello/cover.jpg`：
-
-```yaml
-cover: ../../images/posts/hello/cover.jpg
-coverAlt: 夜空下的城市
-```
-
-CLI 会自动创建正确的目录和引用，推荐使用 CLI 添加带图片的内容。
-
-## 内容格式
-
-### Blog
-
-```md
----
-title: "Hello wblog"
-date: 2026-08-30
-description: "文章摘要。"
-tags: ["Astro", "Notes"]
-cover: "../../images/posts/hello/cover.jpg"
-coverAlt: "封面内容的准确描述"
-draft: false
----
-
-正文使用 Markdown。
-```
-
-### Daily Life
-
-```md
----
-title: "傍晚散步"
-date: 2026-08-30
-summary: "今天的天空很好看。"
-images:
-  - src: "../../images/life/evening/sky.jpg"
-    alt: "蓝紫色晚霞"
----
-```
-
-### Gallery
-
-Gallery 与 Life 使用相同的 `{src, alt}` 图片数组，首图自动作为列表封面。每项都会生成独立详情页和渐进增强灯箱。
-
-## 常用命令
+## 日常使用
 
 ```bash
-npm run wblog -- init
-npm run wblog -- setup --minimal
-npm run wblog -- config set profile.name "Rex"
-npm run wblog -- post new "Hello" --cover ./cover.jpg --cover-alt "夜空"
+# 新文章与内容
+npm run wblog -- post new "Hello" --tags Notes,Astro
 npm run wblog -- life new "散步" --summary "天气很好" --photo ./sky.jpg
 npm run wblog -- gallery new "Night" --description "第一帧" --image ./night.jpg
-npm run wblog -- asset add ./avatar.png --to profile
+
+# 配置、检查与预览
+npm run wblog -- config set profile.name "Your Name"
 npm run wblog -- doctor
+npm run build
+npm run preview
+
+# 只发布私人站点的静态产物，不提交 site/
+npm run wblog -- deploy --yes --message "deploy: update site"
 ```
 
-CLI 不会覆盖已有 Markdown 或图片，也拒绝把文件写出 `site/`。
+完整参数见 [CLI 参考](./docs/reference/cli.md)，内容格式见[内容与图片](./docs/guide/content-and-assets.md)。
 
-## 配置与语言
+## 文档导航
 
-- `site.locale` 支持 `en` 和 `zh-CN`，控制框架界面、日期、数字和无障碍文案。
-- `site.url` 填完整生产域名；项目型 GitHub Pages 在 `site.base` 填 `/repository-name`，根域站点保持空字符串。
-- `home.modules` 独立控制 Activities、Daily Life、Blog、Gallery、Music 和 About。
-- `integrations` 配置 GitHub、Steam、Bilibili 的构建时同步；访客浏览页面时不会请求平台接口。
-- Steam 密钥只写入 `.env` 或 GitHub Actions Secret `STEAM_API_KEY`。
+### 使用指南
 
-外部平台失败时只降级对应平台，其他成功数据仍会保留。可在本地使用 `WBLOG_OFFLINE=1 npm run build` 强制测试静态 fallback。
+- [安装与初始化](./docs/guide/getting-started.md)
+- [站点配置](./docs/guide/configuration.md)
+- [内容与图片](./docs/guide/content-and-assets.md)
 
-## 图片与性能
+### 发布与维护
 
-`site/images` 中的本地图片会在构建时生成带尺寸的 AVIF/WebP 响应式资源。首屏图片预加载，其余内容图懒加载；图片字段必须提供 alt 文本。字体随构建产物自托管，不依赖 Google Fonts。
+- [GitHub Pages 发布](./docs/deployment/github-pages.md)
+- [CLI 命令参考](./docs/reference/cli.md)
+- [架构与隐私边界](./docs/reference/architecture.md)
+- [贡献指南](./CONTRIBUTING.md)
 
-## GitHub Pages
-
-仓库已包含 `.github/workflows/deploy.yml`。源码 CI 使用公开 `template/` 执行完整测试与构建；若要发布模板的项目型 Pages，请在 Settings → Pages 中选择 GitHub Actions，并添加值为 `true` 的仓库变量 `WBLOG_DEPLOY_PROJECT_PAGES`。
+## 开发与质量检查
 
 ```bash
-# 构建私有 site/，并发布到配置的独立 Pages 仓库
-npm run wblog -- deploy --yes --message "deploy: update site"
+npm test
+WBLOG_SITE_DIR=template WBLOG_OFFLINE=1 npm run build
 
-# 等价的底层命令
-npm run wblog -- pages sync
+npx playwright install chromium
+WBLOG_SITE_DIR=template npm run test:e2e
+WBLOG_SITE_DIR=template npm run lighthouse
 ```
 
-`deploy` 不会执行 `git add`、提交文章或推送 `wblog` 源码仓库。它与 `pages sync` 都使用 `site/config.yml` 中的 `deployment.githubPagesRepository`，只推送生成后的静态产物，不上传原始 Markdown、原图、依赖或密钥。
-
-## 已包含的站点能力
-
-- Blog、Life、Gallery、About、标签、上一篇/下一篇、RSS、404、robots 和站点地图。
-- Open Graph、X Card、canonical、favicon、Person/WebSite/BlogPosting 结构化数据。
-- 移动导航、画廊灯箱、键盘操作、减少动态效果偏好和无 JavaScript 内容降级。
-- GitHub、Steam、Bilibili 构建时动态与逐平台 fallback。
-- 私有站点/公开模板隔离、Astro 类型检查、Vitest 单元/CLI 集成测试和可选 GitHub Pages 自动部署。
+源码 CI 始终使用公开 `template/`，不会读取开发者本地的 `site/`。当前发布线为 **v0.3**，核心变化见 [CHANGELOG](./CHANGELOG.md)。
