@@ -64,4 +64,6 @@ CLI 不覆盖同名目标，并验证图片扩展名与目录逃逸。
 
 所有 production build 会自动尝试刷新；API 不可用或会话过期时继续使用旧快照。强制离线构建使用 `WBLOG_OFFLINE=1 npm run build`。
 
+如果同步提示 `VRChat session expired or is no longer valid`，说明保存的 Cookie 已被 VRChat 撤销或自然过期，请重新运行 `npm run wblog -- vrchat login`。wblog 会保留最后一份有效快照，重新登录前仍可正常构建和发布。
+
 `site/images/generated/vrchat/` 是同步器专用目录，请勿放入手工素材。每次成功同步都会先在私有临时目录完整下载，再整体替换该目录；旧地图、旧扩展名和临时文件会被清理。同步中断则恢复上一版图片和快照。

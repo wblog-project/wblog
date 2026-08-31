@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/wblog-project/wblog/actions/workflows/deploy.yml"><img alt="CI" src="https://github.com/wblog-project/wblog/actions/workflows/deploy.yml/badge.svg" /></a>
-  <img alt="version" src="https://img.shields.io/badge/version-0.3.0-9d68ff" />
+  <img alt="version" src="https://img.shields.io/badge/version-0.4.0-9d68ff" />
   <img alt="Node.js" src="https://img.shields.io/badge/Node.js-%3E%3D22.19-43853d" />
   <img alt="Astro" src="https://img.shields.io/badge/Astro-7-ff5d01" />
 </p>

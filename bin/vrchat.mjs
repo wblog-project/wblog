@@ -129,9 +129,35 @@ async function retryAfterRateLimit(action) {
   }
 }
 
+function apiErrorMessage(data) {
+  return typeof data?.error?.message === 'string' ? data.error.message.trim() : '';
+}
+
+function requireCurrentUser(data) {
+  if (data?.id) return data;
+  const detail = apiErrorMessage(data);
+  if (/missing credentials/i.test(detail)) {
+    throw new Error('VRChat session expired or is no longer valid. Run `npm run wblog -- vrchat login` again.');
+  }
+  throw new Error(`VRChat did not return a current user${detail ? `: ${detail}` : '.'}`);
+}
+
+function requireRecentWorlds(data) {
+  if (Array.isArray(data)) return data;
+  const detail = apiErrorMessage(data);
+  if (/missing credentials/i.test(detail)) {
+    throw new Error('VRChat session expired or is no longer valid. Run `npm run wblog -- vrchat login` again.');
+  }
+  throw new Error(`VRChat returned an invalid recent-worlds response${detail ? `: ${detail}` : '.'}`);
+}
+
 async function createSnapshot(client, root, config, paths, stagingImages) {
-  const { data: user } = await retryAfterRateLimit(() => client.getCurrentUser({ throwOnError: true }));
-  const { data: worlds } = await retryAfterRateLimit(() => client.getRecentWorlds({ query: { n: config.integrations.vrchat.maxRecentWorlds }, throwOnError: true }));
+  const currentUserResponse = await retryAfterRateLimit(() => client.getCurrentUser({ throwOnError: true, responseTransformer: undefined }));
+  const user = requireCurrentUser(currentUserResponse.data);
+  // VRChat.js 2.22.8 transforms this endpoint with an unconditional data.map().
+  // Validate the raw response ourselves so an expired session reports its real error.
+  const recentWorldsResponse = await retryAfterRateLimit(() => client.getRecentWorlds({ query: { n: config.integrations.vrchat.maxRecentWorlds }, throwOnError: true, responseTransformer: undefined }));
+  const worlds = requireRecentWorlds(recentWorldsResponse.data);
   const application = applicationFor(root, config);
   const userAgent = `${application.name}/${application.version} (${application.contact})`;
   const profileSource = user.userIcon || user.profilePicOverride || user.currentAvatarImageUrl || '';
@@ -313,4 +339,4 @@ export async function commandVrchat(root, siteRoot, args) {
   throw new Error('Use: vrchat login | sync | status | logout');
 }
 
-export const testing = { commitSnapshot, imageExtension, pathsFor, recoverAssetTransactions, retryAfterRateLimit };
+export const testing = { commitSnapshot, imageExtension, pathsFor, recoverAssetTransactions, requireCurrentUser, requireRecentWorlds, retryAfterRateLimit };
