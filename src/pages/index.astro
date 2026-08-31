@@ -22,6 +22,10 @@ const { profile, socials, home } = siteConfig;
 const heroImage = await resolveSiteImage(profile.heroImage);
 const musicCover = await resolveSiteImage(home.music.cover);
 const featuredSocials = socials.slice(0, 4);
+const bilibiliActivities = activities.filter((item) => item.type === 'bilibili');
+const githubActivities = activities.filter((item) => item.type === 'github' || item.type === 'project');
+const bilibiliProfile = socials.find((social) => social.icon === 'tv')?.url;
+const githubProfile = socials.find((social) => social.icon === 'github')?.url;
 const vrchat = readVrchatSnapshot();
 const vrchatProfileImage = vrchat?.profile.image ? await resolveSiteImage(vrchat.profile.image) : undefined;
 const vrchatPreview = vrchat?.recentWorlds.slice(0, 3) || [];
@@ -60,8 +64,17 @@ const vrchatWorldImages = await Promise.all(vrchatPreview.map((world) => world.i
   </section>}
 
   {home.modules.activities && <section class="section shell">
-    <div class="section-heading"><div><p class="eyebrow"><Icon name="sparkles" size={14} /> {t('activitiesEyebrow')}</p><h2>{t('activitiesTitle')}</h2><p>{t('activitiesDescription')}</p></div><div class="scroll-hint">{t('swipe')}</div></div>
-    {activities.length ? <div class="activity-scroller" tabindex="0" aria-label={t('activitiesTitle')}>{activities.map((item) => <ActivityCard item={item} />)}</div> : <p class="empty-state">{t('noContent')}</p>}
+    <div class="section-heading"><div><p class="eyebrow"><Icon name="sparkles" size={14} /> {t('activitiesEyebrow')}</p><h2>{t('activitiesTitle')}</h2><p>{t('activitiesDescription')}</p></div></div>
+    <div class="activity-panels">
+      <article class="panel activity-panel bilibili-panel">
+        <div class="panel-heading"><div><p class="eyebrow"><Icon name="tv" size={14} /> Bilibili</p><h2>{t('latestVideos')}</h2></div>{bilibiliProfile && <a href={bilibiliProfile} target="_blank" rel="noreferrer">{t('viewChannel')} <Icon name="arrow-up-right" size={15} /></a>}</div>
+        {bilibiliActivities.length ? <div class="bilibili-grid">{bilibiliActivities.map((item) => <ActivityCard item={item} />)}</div> : <p class="empty-state">{t('noContent')}</p>}
+      </article>
+      <article class="panel activity-panel github-panel">
+        <div class="panel-heading"><div><p class="eyebrow"><Icon name="github" size={14} /> GitHub</p><h2>{t('recentProjects')}</h2></div>{githubProfile && <a href={githubProfile} target="_blank" rel="noreferrer">{t('viewProfile')} <Icon name="arrow-up-right" size={15} /></a>}</div>
+        {githubActivities.length ? <div class="github-project-list">{githubActivities.map((item) => <a class="github-project" href={item.href} target="_blank" rel="noreferrer"><span class="github-project-icon"><Icon name="github" size={16} /></span><span class="github-project-copy"><strong>{item.title}</strong><span>{item.subtitle}</span><small>{item.metric}</small></span><Icon name="arrow-up-right" size={15} /></a>)}</div> : <p class="empty-state">{t('noContent')}</p>}
+      </article>
+    </div>
   </section>}
 
   <section class="content-grid shell">

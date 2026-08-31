@@ -142,4 +142,4 @@ WBLOG_SITE_DIR=template npm run test:e2e
 WBLOG_SITE_DIR=template npm run lighthouse
 ```
 
-源码 CI 始终使用公开 `template/`，不会读取开发者本地的 `site/`。当前发布线为 **v0.3**，核心变化见 [CHANGELOG](./CHANGELOG.md)。
+源码 CI 始终使用公开 `template/`，不会读取开发者本地的 `site/`。当前发布线为 **v0.4**，核心变化见 [CHANGELOG](./CHANGELOG.md)。

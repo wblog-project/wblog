@@ -11,6 +11,9 @@ test('homepage is readable, responsive and accessible', async ({ page }, testInf
   const dailyLifeImages = page.locator('.daily-panel .mini-gallery a');
   await expect(dailyLifeImages.first()).toHaveAttribute('href', /\/life\//);
   await expect(dailyLifeImages.first().locator('img')).toHaveAttribute('src', /IMG_20260830/);
+  await expect(page.locator('.bilibili-panel .activity-bilibili').first()).toBeVisible();
+  await expect(page.locator('.github-panel .github-project').first()).toBeVisible();
+  await expect(page.locator('.github-panel .activity-card')).toHaveCount(0);
   if (testInfo.project.name === 'mobile') {
     const menu = page.locator('[data-menu-button]');
     await expect(menu).toBeVisible();
