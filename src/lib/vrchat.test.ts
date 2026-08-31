@@ -51,3 +51,11 @@ describe('VRChat API response validation', () => {
     expect(testing.requireRecentWorlds([{ id: 'wrld_test' }])).toEqual([{ id: 'wrld_test' }]);
   });
 });
+
+describe('VRChat build synchronization controls', () => {
+  it('can skip only VRChat without putting every activity provider offline', () => {
+    expect(testing.syncSkipReason({ WBLOG_SKIP_VRCHAT_SYNC: '1' })).toBe('explicitly skipped');
+    expect(testing.syncSkipReason({ WBLOG_OFFLINE: '1' })).toBe('offline');
+    expect(testing.syncSkipReason({})).toBeUndefined();
+  });
+});

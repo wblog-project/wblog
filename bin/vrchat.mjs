@@ -243,11 +243,18 @@ function commitSnapshot(paths, stagingImages, snapshot) {
   }
 }
 
+function syncSkipReason(environment = process.env) {
+  if (environment.WBLOG_OFFLINE === '1') return 'offline';
+  if (environment.WBLOG_SKIP_VRCHAT_SYNC === '1') return 'explicitly skipped';
+  return undefined;
+}
+
 async function sync(root, siteRoot, { buildHook = false, client: suppliedClient } = {}) {
   const paths = pathsFor(root, siteRoot);
   const config = readConfig(paths.config);
   if (!config.integrations?.vrchat?.enabled) return { skipped: true, reason: 'disabled' };
-  if (process.env.WBLOG_OFFLINE === '1') return { skipped: true, reason: 'offline' };
+  const skipReason = syncSkipReason();
+  if (skipReason) return { skipped: true, reason: skipReason };
   if (!suppliedClient && !existsSync(paths.session)) {
     if (hasSnapshot(paths.snapshot)) {
       console.warn('Warning: VRChat session is missing; using the last saved snapshot.');
@@ -339,4 +346,4 @@ export async function commandVrchat(root, siteRoot, args) {
   throw new Error('Use: vrchat login | sync | status | logout');
 }
 
-export const testing = { commitSnapshot, imageExtension, pathsFor, recoverAssetTransactions, requireCurrentUser, requireRecentWorlds, retryAfterRateLimit };
+export const testing = { commitSnapshot, imageExtension, pathsFor, recoverAssetTransactions, requireCurrentUser, requireRecentWorlds, retryAfterRateLimit, syncSkipReason };

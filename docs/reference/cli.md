@@ -62,7 +62,7 @@ CLI 不覆盖同名目标，并验证图片扩展名与目录逃逸。
 
 首次运行 `npm run wblog -- vrchat login`。密码和 2FA 只在当前终端输入，不会保存；成功后仅把会话 Cookie 写入 `site/.wblog/vrchat/session.json`，并生成只包含显示名、公开简介、好友总数和最近世界的快照。
 
-所有 production build 会自动尝试刷新；API 不可用或会话过期时继续使用旧快照。强制离线构建使用 `WBLOG_OFFLINE=1 npm run build`。
+所有 production build 会自动尝试刷新；API 不可用或会话过期时继续使用旧快照。强制离线构建使用 `WBLOG_OFFLINE=1 npm run build`，这会同时禁用 GitHub、Steam、Bilibili 等所有构建期网络请求。如果只想跳过 VRChat 同步并继续获取其他公开平台数据，使用 `WBLOG_SKIP_VRCHAT_SYNC=1 npm run build`。
 
 如果同步提示 `VRChat session expired or is no longer valid`，说明保存的 Cookie 已被 VRChat 撤销或自然过期，请重新运行 `npm run wblog -- vrchat login`。wblog 会保留最后一份有效快照，重新登录前仍可正常构建和发布。
 

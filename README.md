@@ -116,6 +116,9 @@ npm run preview
 
 # deploy 会重新 build，再发布私人站点的静态产物；不会提交 site/
 npm run wblog -- deploy --yes --message "deploy: update site"
+
+# VRChat 会话暂时不可用时，只跳过 VRChat，同步其他公开平台
+WBLOG_SKIP_VRCHAT_SYNC=1 npm run wblog -- deploy --yes
 ```
 
 完整参数见 [CLI 参考](./docs/reference/cli.md)，内容格式见[内容与图片](./docs/guide/content-and-assets.md)。

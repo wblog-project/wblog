@@ -49,6 +49,12 @@ WBLOG_OFFLINE=1 npm run build
 
 普通 production build 会先尝试刷新 VRChat 快照。本地 Cookie 失效时运行 `npm run wblog -- vrchat login`；自动化环境不应保存账号密码或 2FA secret，可使用已生成快照离线构建。
 
+`WBLOG_OFFLINE=1` 会禁用所有远程 Provider。如果只需沿用已有 VRChat 快照，同时仍要获取 GitHub、Steam、Bilibili 数据，请使用：
+
+```bash
+WBLOG_SKIP_VRCHAT_SYNC=1 npm run wblog -- deploy --yes
+```
+
 发布后建议检查首页、`/blog/`、`/life/`、`/gallery/`、`/rss.xml` 和 `/robots.txt`。
 
 ## 网络代理
