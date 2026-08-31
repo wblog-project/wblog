@@ -22,7 +22,8 @@ test('content routes and gallery lightbox work', async ({ page }) => {
   await expect(page.locator('.post-card').first()).toBeVisible();
   await page.goto('/wblog/life/');
   await expect(page.locator('.life-entry').first()).toBeVisible();
-  await page.goto('/wblog/gallery/twilight/');
+  await page.goto('/wblog/gallery/');
+  await page.locator('.gallery-item a').first().click();
   const image = page.locator('[data-lightbox-trigger]').first();
   await expect(image).toBeVisible();
   await image.click();
