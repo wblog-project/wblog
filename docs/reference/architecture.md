@@ -32,14 +32,14 @@ WBLOG_SITE_DIR=template
 公开平台动态使用统一的数据流：
 
 ```text
-site/config.yml → activityProviders → ActivityCard[] → 首页特色区或通用动态区
+site/config.yml → activityProviders → ActivityCard[] → 平台快照 → 首页特色区或通用动态区
                               └─ 失败时按 type 使用 fallbackActivities
 ```
 
 每个平台实现位于 `src/lib/activity-providers/`，负责自己的响应 Schema、请求和字段映射；`src/lib/activities.ts` 只负责注册、并发执行、故障隔离、降级和去重。新增公开平台时：
 
 1. 在 `site-config.ts` 增加平台配置 Schema，并同步 `template/config.yml`。
-2. 新增一个返回标准 `ActivityCard[]` 的 Provider，并加入 `activityProviders` 注册表。
+2. 新增一个返回标准 `ActivityCard[]` 的 Provider，并加入 `activityProviders` 注册表。成功拉取的数据会自动保存到 `site/.wblog/activities/`；后续请求失败时优先使用这份快照。
 3. 为响应映射和失败降级补单元测试。
 
 非 Bilibili/GitHub 类型会自动进入首页通用动态区，因此 Steam、网易云等卡片不需要再修改首页聚合逻辑。`ActivityCard.label` 和 `ActivityCard.icon` 可覆盖默认平台名与图标。

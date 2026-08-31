@@ -58,4 +58,10 @@ describe('VRChat build synchronization controls', () => {
     expect(testing.syncSkipReason({ WBLOG_OFFLINE: '1' })).toBe('offline');
     expect(testing.syncSkipReason({})).toBeUndefined();
   });
+
+  it('does not let a hanging session-store cleanup block the build', async () => {
+    const startedAt = Date.now();
+    await testing.disconnectWithTimeout({ disconnect: () => new Promise(() => {}) }, 10);
+    expect(Date.now() - startedAt).toBeLessThan(100);
+  });
 });

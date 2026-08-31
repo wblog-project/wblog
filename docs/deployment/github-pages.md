@@ -24,6 +24,8 @@ npm run wblog -- deploy --yes --message "deploy: update site"
 
 `deploy` 会使用根路径重新构建，浅克隆 Pages 仓库，用 `dist/` 替换其中静态文件并推送。它不会提交或推送 `site/` 到源码仓库。
 
+默认发布会独立拉取每个已启用的平台。某个平台请求失败不会中断其他平台：优先使用 `site/.wblog/activities/` 中最近一次成功数据，其次使用 `fallbackActivities`。发布结束会列出各平台本次使用的是实时 API、快照、配置 fallback，还是没有可用数据。
+
 底层等价命令：
 
 ```bash

@@ -125,7 +125,7 @@ WBLOG_SKIP_VRCHAT_SYNC=1 npm run wblog -- deploy --yes
 
 ## 平台集成与扩展
 
-GitHub、Steam 和 Bilibili 使用统一的 Activity Provider 契约。每个平台独立负责 API 响应校验与标准卡片映射，聚合层负责并发、超时、故障隔离、`fallbackActivities` 降级和去重。Bilibili 与 GitHub 保留专属首页布局，Steam 以及后续平台会自动进入通用动态区。
+GitHub、Steam 和 Bilibili 使用统一的 Activity Provider 契约。每个平台独立负责 API 响应校验与标准卡片映射，聚合层负责并发、超时、故障隔离、快照、`fallbackActivities` 降级和去重。成功结果会保存到私有的 `site/.wblog/activities/`；后续请求失败时优先读取最近快照，发布结束会汇总每个平台使用的是实时数据、快照还是配置 fallback。Bilibili 与 GitHub 保留专属首页布局，Steam 以及后续平台会自动进入通用动态区。
 
 新增无需登录的公开平台时，通常只需要：
 

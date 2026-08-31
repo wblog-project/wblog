@@ -7,6 +7,7 @@ import process from 'node:process';
 import { createInterface } from 'node:readline/promises';
 import { parse, stringify } from 'yaml';
 import { commandVrchat } from './vrchat.mjs';
+import { readBuildReport } from './build-report.mjs';
 
 const root = process.cwd();
 const siteDirectory = process.env.WBLOG_SITE_DIR === 'template' ? 'template' : 'site';
@@ -73,6 +74,17 @@ const helpByCommand = {
 
 function fail(message) { console.error(`\nError: ${message}\nRun \`npm run wblog -- help\` for usage.`); process.exit(1); }
 function info(message) { console.log(`✓ ${message}`); }
+function printBuildReport(reportPath) {
+  const report = readBuildReport(reportPath);
+  const labels = { live: 'live API', snapshot: 'saved snapshot', fallback: 'configured fallback', unavailable: 'unavailable', disabled: 'disabled' };
+  const entries = Object.entries(report);
+  if (!entries.length) return;
+  console.log('\nBuild data sources:');
+  for (const [name, result] of entries) {
+    const displayName = name.charAt(0).toUpperCase() + name.slice(1);
+    console.log(`  ${displayName}: ${labels[result.source] || result.source}${result.detail ? ` (${result.detail})` : ''}`);
+  }
+}
 function project() { if (!existsSync(configPath) || !existsSync(path.join(root, 'package.json'))) fail(`Run this command from the wblog project root. Expected ${siteDirectory}/config.yml. New clone? Run \`npm run wblog -- init\`.`); }
 function run(command, args, options = {}) { const result = spawnSync(command, args, { cwd: root, stdio: 'inherit', ...options }); if (result.error) fail(result.error.message); if (result.status !== 0) process.exit(result.status ?? 1); }
 function readConfig() { project(); return parse(readFileSync(configPath, 'utf8')); }
@@ -192,7 +204,9 @@ function commandPages(args) {
   if (!repository || repository === true) fail('Set deployment.githubPagesRepository or pass --repository <URL>.');
   const siteUrl = flag(flags, 'site', config.site?.url);
   if (!siteUrl || siteUrl === true || !validUrl(siteUrl)) fail('Set a valid site.url or pass --site <https://...>.');
-  const buildEnvironment = { ...process.env, WBLOG_BASE: '', WBLOG_SITE_URL: String(siteUrl).replace(/\/$/, '') };
+  const reportPath = path.join(os.tmpdir(), `wblog-build-report-${process.pid}.json`);
+  rmSync(reportPath, { force: true });
+  const buildEnvironment = { ...process.env, WBLOG_BASE: '', WBLOG_SITE_URL: String(siteUrl).replace(/\/$/, ''), WBLOG_BUILD_REPORT: reportPath };
   // Preserve an explicit SSH transport (for example a local SOCKS proxy) while
   // retaining sensible timeouts for the normal direct-SSH case.
   const gitEnvironment = {
@@ -217,10 +231,17 @@ function commandPages(args) {
     run('git', ['-C', temporaryRepo, 'config', 'user.email', authorEmail]);
     run('git', ['-C', temporaryRepo, 'add', '-A']);
     const changed = spawnSync('git', ['-C', temporaryRepo, 'status', '--porcelain'], { encoding: 'utf8' }).stdout.trim();
-    if (!changed) { info('GitHub Pages repository is already up to date.'); return; }
+    if (!changed) {
+      info('GitHub Pages repository is already up to date.');
+      printBuildReport(reportPath);
+      rmSync(reportPath, { force: true });
+      return;
+    }
     run('git', ['-C', temporaryRepo, 'commit', '-m', String(flag(flags, 'message', 'deploy: sync wblog static site'))]);
     run('git', ['-C', temporaryRepo, 'push', '-u', 'origin', 'main'], { env: gitEnvironment });
     info(`Synced static site to ${repository}`);
+    printBuildReport(reportPath);
+    rmSync(reportPath, { force: true });
   } finally { rmSync(temporaryRepo, { recursive: true, force: true }); }
 }
 function markdownFiles(directory) { if (!existsSync(directory)) return []; return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => { const file = path.join(directory, entry.name); return entry.isDirectory() ? markdownFiles(file) : entry.name.endsWith('.md') ? [file] : []; }); }

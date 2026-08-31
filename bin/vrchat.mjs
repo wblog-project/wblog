@@ -4,6 +4,7 @@ import prompts from 'prompts';
 import { KeyvFile } from 'keyv-file';
 import { VRChat } from 'vrchat';
 import { parse, stringify } from 'yaml';
+import { updateBuildReport } from './build-report.mjs';
 
 const snapshotVersion = 1;
 const imageLimit = 12 * 1024 * 1024;
@@ -249,15 +250,37 @@ function syncSkipReason(environment = process.env) {
   return undefined;
 }
 
+async function disconnectWithTimeout(store, timeoutMs = 1000) {
+  if (!store) return;
+  let timer;
+  try {
+    await Promise.race([
+      store.disconnect(),
+      new Promise((resolve) => { timer = setTimeout(resolve, timeoutMs); }),
+    ]);
+  } catch {
+    // Synchronization has already completed or fallen back; cleanup must not block the build.
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function sync(root, siteRoot, { buildHook = false, client: suppliedClient } = {}) {
   const paths = pathsFor(root, siteRoot);
   const config = readConfig(paths.config);
-  if (!config.integrations?.vrchat?.enabled) return { skipped: true, reason: 'disabled' };
+  if (!config.integrations?.vrchat?.enabled) {
+    updateBuildReport('VRChat', 'disabled');
+    return { skipped: true, reason: 'disabled' };
+  }
   const skipReason = syncSkipReason();
-  if (skipReason) return { skipped: true, reason: skipReason };
+  if (skipReason) {
+    updateBuildReport('VRChat', hasSnapshot(paths.snapshot) ? 'snapshot' : 'unavailable', skipReason);
+    return { skipped: true, reason: skipReason };
+  }
   if (!suppliedClient && !existsSync(paths.session)) {
     if (hasSnapshot(paths.snapshot)) {
       console.warn('Warning: VRChat session is missing; using the last saved snapshot.');
+      updateBuildReport('VRChat', 'snapshot', 'session missing');
       return { stale: true };
     }
     throw new Error('VRChat is enabled but has no session or snapshot. Run `npm run wblog -- vrchat login`.');
@@ -271,6 +294,7 @@ async function sync(root, siteRoot, { buildHook = false, client: suppliedClient 
     const client = suppliedClient || connection.client;
     const snapshot = await createSnapshot(client, root, config, paths, stagingImages);
     commitSnapshot(paths, stagingImages, snapshot);
+    updateBuildReport('VRChat', 'live', `${snapshot.recentWorlds.length} recent worlds`);
     if (existsSync(paths.session)) chmodSync(paths.session, 0o600);
     if (!buildHook) console.log(`✓ Synced VRChat profile and ${snapshot.recentWorlds.length} recent world(s).`);
     return { snapshot };
@@ -278,12 +302,13 @@ async function sync(root, siteRoot, { buildHook = false, client: suppliedClient 
     rmSync(stagingImages, { recursive: true, force: true });
     if (hasSnapshot(paths.snapshot)) {
       console.warn(`Warning: VRChat sync failed; using the last saved snapshot. ${error instanceof Error ? error.message : String(error)}`);
+      updateBuildReport('VRChat', 'snapshot', 'live sync failed');
       return { stale: true };
     }
     throw error;
   } finally {
     try {
-      await connection?.store.disconnect();
+      await disconnectWithTimeout(connection?.store);
     } catch {
       // The snapshot commit is already durable; a cookie-store shutdown error must not invalidate it.
     }
@@ -346,4 +371,4 @@ export async function commandVrchat(root, siteRoot, args) {
   throw new Error('Use: vrchat login | sync | status | logout');
 }
 
-export const testing = { commitSnapshot, imageExtension, pathsFor, recoverAssetTransactions, requireCurrentUser, requireRecentWorlds, retryAfterRateLimit, syncSkipReason };
+export const testing = { commitSnapshot, disconnectWithTimeout, imageExtension, pathsFor, recoverAssetTransactions, requireCurrentUser, requireRecentWorlds, retryAfterRateLimit, syncSkipReason };

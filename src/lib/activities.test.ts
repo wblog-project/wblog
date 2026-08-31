@@ -22,6 +22,30 @@ describe('activity fallback', () => {
     expect(groupActivitiesByType(cards).get('netease')).toEqual([neteaseCard]);
   });
 
+  it('stores successful provider data and reuses its snapshot after a later failure', async () => {
+    const saved = new Map();
+    const snapshots = {
+      read: (type: string) => saved.get(type) || [],
+      write: (type: string, cards: unknown[]) => saved.set(type, cards),
+    };
+    const githubCard = { type: 'github', title: 'wblog', subtitle: 'Blog', metric: '1 star', href: 'https://github.com/example/wblog', image: '' };
+    const live = await collectActivities(
+      [{ type: 'github', enabled: () => true, load: async () => [githubCard] }],
+      [],
+      false,
+      snapshots,
+    );
+    const cached = await collectActivities(
+      [{ type: 'github', enabled: () => true, load: async () => { throw new Error('rate limited'); } }],
+      [],
+      false,
+      snapshots,
+    );
+
+    expect(live).toEqual([githubCard]);
+    expect(cached).toEqual([githubCard]);
+  });
+
   it('turns public Bilibili uploads into image activity cards', () => {
     const [video] = mapBilibiliActivities(
       { data: { list: { vlist: [{ title: 'New world tour', description: 'VRChat clips', play: 1280, created: 1_700_000_000, bvid: 'BV1xx', pic: 'http://i0.hdslb.com/cover.jpg' }] } } },
