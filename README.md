@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/wblog-project/wblog/actions/workflows/deploy.yml"><img alt="CI" src="https://github.com/wblog-project/wblog/actions/workflows/deploy.yml/badge.svg" /></a>
-  <img alt="version" src="https://img.shields.io/badge/version-0.4.0-9d68ff" />
+  <img alt="version" src="https://img.shields.io/badge/version-0.5.0-9d68ff" />
   <img alt="Node.js" src="https://img.shields.io/badge/Node.js-%3E%3D22.19-43853d" />
   <img alt="Astro" src="https://img.shields.io/badge/Astro-7-ff5d01" />
 </p>
@@ -32,10 +32,10 @@ wblog 把“博客程序”和“属于你的资料”划成清晰边界。文�
 | --- | --- |
 | 私有内容边界 | `site/` 整体忽略，公开模板独立维护 |
 | 完整内容模型 | Blog、Life、Gallery、About、标签、上一篇/下一篇 |
-| 图片管线 | 本地图片生成响应式 AVIF/WebP，保留准确 alt 文本 |
+| 图片管线 | 本地图片生成响应式 AVIF/WebP；详情图保留原比例，固定卡片按容器裁切 |
 | 双语界面 | `en` 与 `zh-CN`，覆盖日期、数字和无障碍文案 |
 | VRChat 优先 | 私有 CLI 登录、构建时资料/最近世界快照、独立页面与首页主卡 |
-| 静态集成 | VRChat、GitHub、Steam、Bilibili 构建时同步，失败时逐平台降级 |
+| 静态集成 | 可注册 Provider；VRChat、GitHub、Steam、Bilibili 构建时同步并逐平台降级 |
 | 发布能力 | 根域 Pages 仓库与可选 Project Pages，静态产物独立推送 |
 | 质量门禁 | Astro check、Vitest、Playwright、Axe、Lighthouse |
 
@@ -68,6 +68,10 @@ wblog/
 │   ├── content/{posts,life,gallery,pages}/
 │   └── images/
 ├── src/                   # Astro 页面、组件和框架逻辑
+│   └── lib/activity-providers/
+│       ├── github.ts      # 公开平台 Provider 相互隔离
+│       ├── steam.ts
+│       └── bilibili.ts
 ├── bin/                   # wblog CLI 与 Lighthouse 门禁
 ├── tests/                 # 浏览器验收测试
 └── docs/                  # 分层使用与维护文档
@@ -110,11 +114,29 @@ npm run wblog -- doctor
 npm run build
 npm run preview
 
-# 只发布私人站点的静态产物，不提交 site/
+# deploy 会重新 build，再发布私人站点的静态产物；不会提交 site/
 npm run wblog -- deploy --yes --message "deploy: update site"
 ```
 
 完整参数见 [CLI 参考](./docs/reference/cli.md)，内容格式见[内容与图片](./docs/guide/content-and-assets.md)。
+
+## 平台集成与扩展
+
+GitHub、Steam 和 Bilibili 使用统一的 Activity Provider 契约。每个平台独立负责 API 响应校验与标准卡片映射，聚合层负责并发、超时、故障隔离、`fallbackActivities` 降级和去重。Bilibili 与 GitHub 保留专属首页布局，Steam 以及后续平台会自动进入通用动态区。
+
+新增无需登录的公开平台时，通常只需要：
+
+1. 在 `src/lib/activity-providers/` 新增 Provider。
+2. 在站点配置 Schema 和 `template/config.yml` 增加配置。
+3. 注册 Provider 并补充响应映射测试。
+
+网易云等平台如果需要 Cookie 或私人听歌记录，应使用“本地同步 → 净化后的版本化快照 → 构建只读快照”模式；不要把登录态放进公开 GitHub Actions。完整约束见[架构与隐私边界](./docs/reference/architecture.md)。
+
+## 图片展示约定
+
+- Blog、Life、Gallery 详情图片和 Gallery 灯箱按原始宽高比完整展示。
+- 首页预览、列表封面、头像与背景属于固定构图区域，使用 `cover` 裁切。
+- 三类详情页统一使用 `ArticleImages`，避免以后修改图片行为时再次出现页面间不一致。
 
 ## 文档导航
 
@@ -142,4 +164,4 @@ WBLOG_SITE_DIR=template npm run test:e2e
 WBLOG_SITE_DIR=template npm run lighthouse
 ```
 
-源码 CI 始终使用公开 `template/`，不会读取开发者本地的 `site/`。当前发布线为 **v0.4**，核心变化见 [CHANGELOG](./CHANGELOG.md)。
+源码 CI 始终使用公开 `template/`，不会读取开发者本地的 `site/`。当前发布线为 **v0.5**，核心变化见 [CHANGELOG](./CHANGELOG.md)。

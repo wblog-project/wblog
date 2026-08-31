@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
 import { byNewest, entrySlug } from '../../lib/content';
 import { formatDate, t } from '../../lib/i18n';
 import { siteConfig, withBase } from '../../lib/site-config';
@@ -12,6 +13,6 @@ export async function getStaticPaths() {
 const { tag, posts } = Astro.props;
 ---
 <BaseLayout title={`#${tag} · ${siteConfig.site.title}`} description={`${t('tag')}: ${tag}`}>
-  <section class="page-hero shell"><p class="eyebrow">✦ {t('tag')}</p><h1>#{tag}</h1></section>
+  <PageHero eyebrow={t('tag')} title={`#${tag}`} />
   <section class="tag-results shell">{posts.map((post) => <a href={withBase(`/blog/${entrySlug(post.id)}`)}><strong>{post.data.title}</strong><time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time></a>)}</section>
 </BaseLayout>

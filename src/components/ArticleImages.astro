@@ -1,0 +1,36 @@
+---
+import type { ImageMetadata } from 'astro';
+import SiteImage from './SiteImage.astro';
+
+interface ArticleImage {
+  src: ImageMetadata | string;
+  alt: string;
+}
+
+interface Props {
+  images: ArticleImage[];
+  class?: string;
+  lightboxSources?: string[];
+  eager?: boolean;
+}
+
+const { images, class: className, lightboxSources, eager = false } = Astro.props;
+---
+<div class:list={['article-images', className]}>
+  {images.map((image, index) => {
+    const picture = <SiteImage
+      src={image.src}
+      alt={image.alt}
+      widths={[640, 960, 1280]}
+      sizes="min(100vw, 800px)"
+      fit="contain"
+      loading={eager && index === 0 ? 'eager' : 'lazy'}
+    />;
+    const lightboxSource = lightboxSources?.[index];
+    return lightboxSource ? (
+      <a class="article-image article-image-zoom" href={lightboxSource} data-lightbox-trigger={index}>{picture}</a>
+    ) : (
+      <div class="article-image">{picture}</div>
+    );
+  })}
+</div>

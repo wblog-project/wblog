@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { getActivities, mapBilibiliActivities, signBilibiliParams } from './activities';
+import { collectActivities, getActivities, groupActivitiesByType, mapBilibiliActivities, signBilibiliParams } from './activities';
 
 describe('activity fallback', () => {
   it('uses configured cards when providers fail', async () => {
@@ -7,6 +7,19 @@ describe('activity fallback', () => {
     const cards = await getActivities();
     expect(cards.length).toBeGreaterThan(0);
     vi.unstubAllGlobals();
+  });
+
+  it('isolates provider failures and keeps new platform cards without changing the aggregator', async () => {
+    const fallback = { type: 'steam', title: 'Fallback game', subtitle: '', metric: '', href: 'https://example.com/fallback', image: '' };
+    const neteaseCard = { type: 'netease', label: 'NetEase Music', icon: 'music', title: 'A song', subtitle: 'An artist', metric: 'Now playing', href: 'https://example.com/song', image: '' };
+    const cards = await collectActivities([
+      { type: 'steam', enabled: () => true, load: async () => { throw new Error('offline'); } },
+      { type: 'netease', enabled: () => true, load: async () => [neteaseCard] },
+      { type: 'disabled', enabled: () => false, load: async () => { throw new Error('must not run'); } },
+    ], [fallback], false);
+
+    expect(cards).toEqual([fallback, neteaseCard]);
+    expect(groupActivitiesByType(cards).get('netease')).toEqual([neteaseCard]);
   });
 
   it('turns public Bilibili uploads into image activity cards', () => {

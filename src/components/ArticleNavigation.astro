@@ -1,0 +1,26 @@
+---
+import Icon from './Icon.astro';
+import { entrySlug } from '../lib/content';
+import { t } from '../lib/i18n';
+import { withBase } from '../lib/site-config';
+
+interface LinkedEntry {
+  id: string;
+  data: { title: string };
+}
+
+interface Props {
+  previous?: LinkedEntry;
+  next?: LinkedEntry;
+  basePath: string;
+  label: string;
+  icons?: boolean;
+}
+
+const { previous, next, basePath, label, icons = false } = Astro.props;
+const entryUrl = (entry: LinkedEntry) => withBase(`${basePath}/${entrySlug(entry.id)}`);
+---
+<nav class="article-navigation" aria-label={label}>
+  {previous ? <a href={entryUrl(previous)}>{icons && <Icon name="left" />}<small>{t('previous')}</small><strong>{previous.data.title}</strong></a> : <span></span>}
+  {next && <a class="next" href={entryUrl(next)}><small>{t('next')}</small><strong>{next.data.title}</strong>{icons && <Icon name="right" />}</a>}
+</nav>

@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import SiteImage from '../components/SiteImage.astro';
+import PageHero from '../components/PageHero.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { byNewest, entrySlug } from '../lib/content';
 import { formatDate, t } from '../lib/i18n';
@@ -8,6 +9,6 @@ import { siteConfig, withBase } from '../lib/site-config';
 const entries = byNewest(await getCollection('life'));
 ---
 <BaseLayout title={`${t('dailyLife')} · ${siteConfig.site.title}`} description={t('lifeIntro')}>
-  <section class="page-hero shell"><p class="eyebrow">✦ {t('dailyLife')}</p><h1>{t('lifeTitle')}</h1><p>{t('lifeIntro')}</p></section>
+  <PageHero eyebrow={t('dailyLife')} title={t('lifeTitle')} intro={t('lifeIntro')} />
   <section class="life-grid shell">{entries.length ? entries.map((entry) => <article class="life-entry"><a class="life-entry-art" href={withBase(`/life/${entrySlug(entry.id)}`)}><SiteImage src={entry.data.images[0].src} alt={entry.data.images[0].alt} widths={[480, 800]} sizes="(max-width: 700px) 100vw, 50vw" /></a><p class="post-meta"><time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date)}</time></p><h2><a href={withBase(`/life/${entrySlug(entry.id)}`)}>{entry.data.title}</a></h2><p>{entry.data.summary}</p></article>) : <p class="empty-state">{t('noContent')}</p>}</section>
 </BaseLayout>

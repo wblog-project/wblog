@@ -1,0 +1,21 @@
+---
+import Icon from './Icon.astro';
+
+interface Props {
+  class?: string;
+  icon: string;
+  label: string;
+  title: string;
+  href?: string;
+  linkLabel?: string;
+}
+
+const { class: className, icon, label, title, href, linkLabel } = Astro.props;
+---
+<article class:list={['panel', 'activity-panel', className]}>
+  <div class="panel-heading">
+    <div><p class="eyebrow"><Icon name={icon} size={14} /> {label}</p><h2>{title}</h2></div>
+    {href && linkLabel && <a href={href} target="_blank" rel="noreferrer">{linkLabel} <Icon name="arrow-up-right" size={15} /></a>}
+  </div>
+  <slot />
+</article>

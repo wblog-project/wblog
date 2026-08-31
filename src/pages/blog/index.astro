@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import SiteImage from '../../components/SiteImage.astro';
+import PageHero from '../../components/PageHero.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { byNewest, entrySlug } from '../../lib/content';
 import { formatDate, t } from '../../lib/i18n';
@@ -8,7 +9,7 @@ import { siteConfig, withBase } from '../../lib/site-config';
 const posts = byNewest((await getCollection('posts')).filter((item) => !item.data.draft));
 ---
 <BaseLayout title={`${t('blog')} · ${siteConfig.site.title}`} description={t('blogIntro')}>
-  <section class="page-hero shell"><p class="eyebrow">✦ {t('blog')}</p><h1>{t('blogTitle')}</h1><p>{t('blogIntro')}</p></section>
+  <PageHero eyebrow={t('blog')} title={t('blogTitle')} intro={t('blogIntro')} />
   <section class="post-grid shell">
     {posts.length ? posts.map((post) => <article class="post-card">
       <a class="post-card-cover" href={withBase(`/blog/${entrySlug(post.id)}`)}>{post.data.cover && <SiteImage src={post.data.cover} alt={post.data.coverAlt} widths={[480, 800]} sizes="(max-width: 700px) 100vw, 50vw" />}</a>

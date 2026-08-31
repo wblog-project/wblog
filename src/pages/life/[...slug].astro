@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
-import SiteImage from '../../components/SiteImage.astro';
+import ArticleImages from '../../components/ArticleImages.astro';
+import ArticleNavigation from '../../components/ArticleNavigation.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { adjacentEntries, byNewest, entrySlug } from '../../lib/content';
 import { formatDate, t } from '../../lib/i18n';
@@ -14,7 +15,7 @@ const { Content } = await render(entry);
 ---
 <BaseLayout title={`${entry.data.title} · ${t('dailyLife')}`} description={entry.data.summary} image={entry.data.images[0].src} type="article" published={entry.data.date}>
   <article class="article shell"><a class="back-link" href={withBase('/life')}>← {t('backLife')}</a><p class="post-meta"><time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date)}</time></p><h1>{entry.data.title}</h1><p class="article-lead">{entry.data.summary}</p>
-    <div class="story-images">{entry.data.images.map((image) => <SiteImage src={image.src} alt={image.alt} widths={[640, 960, 1280]} sizes="min(100vw, 800px)" />)}</div><div class="prose"><Content /></div>
-    <nav class="article-navigation" aria-label="Adjacent moments">{previous ? <a href={withBase(`/life/${entrySlug(previous.id)}`)}><small>{t('previous')}</small><strong>{previous.data.title}</strong></a> : <span></span>}{next && <a class="next" href={withBase(`/life/${entrySlug(next.id)}`)}><small>{t('next')}</small><strong>{next.data.title}</strong></a>}</nav>
+    <ArticleImages class="story-images" images={entry.data.images} /><div class="prose"><Content /></div>
+    <ArticleNavigation previous={previous} next={next} basePath="/life" label="Adjacent moments" />
   </article>
 </BaseLayout>

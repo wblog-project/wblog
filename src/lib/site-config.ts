@@ -11,6 +11,8 @@ const siteImagePath = z.string().refine(
 
 const activitySchema = z.object({
   type: z.string().min(1),
+  label: z.string().min(1).optional(),
+  icon: z.string().min(1).optional(),
   title: z.string().min(1),
   subtitle: z.string(),
   metric: z.string(),

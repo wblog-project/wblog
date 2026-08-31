@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import ActivityCard from '../components/ActivityCard.astro';
+import ActivityPanel from '../components/ActivityPanel.astro';
 import Icon from '../components/Icon.astro';
 import SiteImage from '../components/SiteImage.astro';
 import VrchatWorldCard from '../components/VrchatWorldCard.astro';
@@ -24,6 +25,7 @@ const musicCover = await resolveSiteImage(home.music.cover);
 const featuredSocials = socials.slice(0, 4);
 const bilibiliActivities = activities.filter((item) => item.type === 'bilibili');
 const githubActivities = activities.filter((item) => item.type === 'github' || item.type === 'project');
+const otherActivities = activities.filter((item) => !['bilibili', 'github', 'project'].includes(item.type));
 const bilibiliProfile = socials.find((social) => social.icon === 'tv')?.url;
 const githubProfile = socials.find((social) => social.icon === 'github')?.url;
 const vrchat = readVrchatSnapshot();
@@ -66,14 +68,15 @@ const vrchatWorldImages = await Promise.all(vrchatPreview.map((world) => world.i
   {home.modules.activities && <section class="section shell">
     <div class="section-heading"><div><p class="eyebrow"><Icon name="sparkles" size={14} /> {t('activitiesEyebrow')}</p><h2>{t('activitiesTitle')}</h2><p>{t('activitiesDescription')}</p></div></div>
     <div class="activity-panels">
-      <article class="panel activity-panel bilibili-panel">
-        <div class="panel-heading"><div><p class="eyebrow"><Icon name="tv" size={14} /> Bilibili</p><h2>{t('latestVideos')}</h2></div>{bilibiliProfile && <a href={bilibiliProfile} target="_blank" rel="noreferrer">{t('viewChannel')} <Icon name="arrow-up-right" size={15} /></a>}</div>
+      <ActivityPanel class="bilibili-panel" icon="tv" label="Bilibili" title={t('latestVideos')} href={bilibiliProfile} linkLabel={t('viewChannel')}>
         {bilibiliActivities.length ? <div class="bilibili-grid">{bilibiliActivities.map((item) => <ActivityCard item={item} />)}</div> : <p class="empty-state">{t('noContent')}</p>}
-      </article>
-      <article class="panel activity-panel github-panel">
-        <div class="panel-heading"><div><p class="eyebrow"><Icon name="github" size={14} /> GitHub</p><h2>{t('recentProjects')}</h2></div>{githubProfile && <a href={githubProfile} target="_blank" rel="noreferrer">{t('viewProfile')} <Icon name="arrow-up-right" size={15} /></a>}</div>
+      </ActivityPanel>
+      <ActivityPanel class="github-panel" icon="github" label="GitHub" title={t('recentProjects')} href={githubProfile} linkLabel={t('viewProfile')}>
         {githubActivities.length ? <div class="github-project-list">{githubActivities.map((item) => <a class="github-project" href={item.href} target="_blank" rel="noreferrer"><span class="github-project-icon"><Icon name="github" size={16} /></span><span class="github-project-copy"><strong>{item.title}</strong><span>{item.subtitle}</span><small>{item.metric}</small></span><Icon name="arrow-up-right" size={15} /></a>)}</div> : <p class="empty-state">{t('noContent')}</p>}
-      </article>
+      </ActivityPanel>
+      {otherActivities.length > 0 && <ActivityPanel class="other-activities-panel" icon="sparkles" label={t('moreActivities')} title={t('moreActivitiesTitle')}>
+        <div class="other-activities-grid">{otherActivities.map((item) => <ActivityCard item={item} />)}</div>
+      </ActivityPanel>}
     </div>
   </section>}
 

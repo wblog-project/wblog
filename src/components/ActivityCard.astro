@@ -10,7 +10,7 @@ const icons: Record<string, string> = { github: 'github', steam: 'gamepad-2', vr
 <a class={`activity-card activity-${item.type}`} href={item.href} target="_blank" rel="noreferrer">
   {item.image && <div class="activity-art"><SiteImage src={item.image} alt="" widths={[320, 640]} sizes="320px" /></div>}
   <div class="activity-copy">
-    <div class="activity-kicker"><Icon name={icons[item.type] || 'sparkles'} size={14} /> {labels[item.type] || 'Now'}</div>
+    <div class="activity-kicker"><Icon name={item.icon || icons[item.type] || 'sparkles'} size={14} /> {item.label || labels[item.type] || item.type}</div>
     <h3>{item.title}</h3><p>{item.subtitle}</p><small>{item.metric}</small>
   </div>
   <Icon name="arrow-up-right" size={17} />

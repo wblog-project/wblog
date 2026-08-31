@@ -179,6 +179,8 @@ h1, h2, h3 { font-family: 'Space Grotesk Variable', sans-serif; letter-spacing: 
 .activity-copy p, .activity-copy small { display: block; margin: 0; overflow: hidden; color: var(--muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .activity-copy small { margin-top: 8px; color: #d2c5f4; }
 .activity-card > svg { position: absolute; right: 14px; bottom: 15px; color: #b9a4ed; }
+.other-activities-panel { grid-column: 1 / -1; }
+.other-activities-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .github-project-list { display: grid; }
 .github-project { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 12px 4px; border-bottom: 1px solid rgba(255, 255, 255, .07); border-radius: 9px; transition: background .2s; }
 .github-project:last-child { border-bottom: 0; }
@@ -266,9 +268,8 @@ h1, h2, h3 { font-family: 'Space Grotesk Variable', sans-serif; letter-spacing: 
 .article h1 { margin: 13px 0; font-size: clamp(2.8rem, 7vw, 5rem); line-height: .96; }
 .article-lead { color: #d1cede; font-size: 20px; }
 .article > .tag-links { margin: 20px 0; }
-.article-cover { height: 360px; margin: 30px 0; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); }
-.article-cover picture, .article-cover img { width: 100%; height: 100%; }
-.article-cover img { object-fit: cover; }
+.article-cover { margin: 30px 0; }
+.article-cover .article-image { border: 1px solid var(--line); border-radius: var(--radius); }
 .prose { color: #d9d6e4; font-size: 17px; }
 .prose h2 { margin-top: 2em; color: #fff; font-size: 1.7em; }
 .prose h3 { margin-top: 1.7em; color: #fff; }
@@ -277,12 +278,12 @@ h1, h2, h3 { font-family: 'Space Grotesk Variable', sans-serif; letter-spacing: 
 .prose pre { padding: 18px; overflow: auto; border: 1px solid var(--line); border-radius: 13px; }
 .prose pre code { padding: 0; background: transparent; }
 .prose blockquote { margin-inline: 0; padding-left: 18px; border-left: 3px solid var(--accent); color: var(--muted); }
-.prose img { border-radius: 13px; }
-.story-images, .gallery-detail { display: grid; gap: 16px; margin: 28px 0; }
-.story-images picture, .story-images img, .gallery-detail picture, .gallery-detail img { width: 100%; border-radius: 15px; }
-.gallery-detail picture { display: block; }
-.gallery-detail img { height: auto; object-fit: contain; }
-.gallery-detail a { overflow: hidden; border-radius: 15px; cursor: zoom-in; }
+.prose img { height: auto; border-radius: 13px; object-fit: contain; }
+.article-images { display: grid; gap: 16px; margin: 28px 0; }
+.article-image, .article-image picture { width: 100%; display: block; }
+.article-image { overflow: hidden; border-radius: 15px; }
+.article-image img { width: 100%; height: auto; border-radius: inherit; object-fit: contain; }
+.article-image-zoom { cursor: zoom-in; }
 .article-navigation { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 54px; padding-top: 24px; border-top: 1px solid var(--line); }
 .article-navigation a { min-width: 0; display: grid; grid-template-columns: auto 1fr; gap: 0 10px; padding: 15px; border: 1px solid var(--line); border-radius: 13px; }
 .article-navigation a svg { grid-row: 1 / 3; align-self: center; }
@@ -366,8 +367,8 @@ h1, h2, h3 { font-family: 'Space Grotesk Variable', sans-serif; letter-spacing: 
   .vrchat-worlds .section-heading { display: grid; }
   .vrchat-synced { padding-top: 0; }
   .section { padding-top: 42px; }
-  .bilibili-grid { display: flex; margin-inline: -3px; padding: 3px 3px 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-color: #7a51d0 transparent; }
-  .bilibili-grid .activity-card { min-width: 82%; scroll-snap-align: start; }
+  .bilibili-grid, .other-activities-grid { display: flex; margin-inline: -3px; padding: 3px 3px 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-color: #7a51d0 transparent; }
+  .bilibili-grid .activity-card, .other-activities-grid .activity-card { min-width: 82%; scroll-snap-align: start; }
   .scroll-hint { display: none; }
   .content-grid { padding-top: 18px; }
   .panel { padding: 17px; }
@@ -379,7 +380,6 @@ h1, h2, h3 { font-family: 'Space Grotesk Variable', sans-serif; letter-spacing: 
   .page-hero { padding: 50px 0 28px; }
   .gallery-item > a { height: 260px; }
   .article { padding-top: 42px; }
-  .article-cover { height: 220px; }
   .article-navigation { grid-template-columns: 1fr; }
   .about-page { grid-template-columns: 1fr; padding-bottom: 62px; }
   .about-page-art { width: 210px; }

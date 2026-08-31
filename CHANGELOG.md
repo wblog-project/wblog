@@ -2,6 +2,35 @@
 
 本项目按面向用户的版本记录重要变化。
 
+## 0.5.0 — 2026-08-31
+
+### Added
+
+- 新增可注册的 Activity Provider 架构，GitHub、Steam、Bilibili 各自维护请求、响应校验和卡片映射。
+- 新增首页通用平台动态区，自动展示 Steam 及后续扩展平台的标准活动卡片。
+- 新增 `ActivityPanel`、`ArticleImages`、`ArticleNavigation` 与 `PageHero` 共享组件。
+- 新增 Provider 故障隔离和未知平台扩展测试，以及 Blog、Life、Gallery 桌面/移动端图片比例回归测试。
+
+### Changed
+
+- `activities.ts` 收敛为 Provider 注册、并发执行、逐平台降级、去重和数量限制的统一聚合层。
+- Blog、Life 与 Gallery 详情图统一使用原比例展示；列表缩略图、头像和背景继续使用适合固定容器的裁切模式。
+- Blog、Life、Gallery 和标签页复用统一的页面标题与相邻内容导航骨架。
+- E2E 改为验证公开模板与私人站点都成立的稳定契约，不再依赖特定私人文件名或平台在线状态。
+- 项目版本更新至 `0.5.0`。
+
+### Fixed
+
+- 修复 Life 详情图缺少明确原比例约束的问题。
+- 修复 Blog 封面在桌面端被固定高度容器明显裁切的问题。
+- 修复 Steam Provider 已获取数据但首页没有渲染入口的问题。
+- 修复 Gallery 灯箱图片管线仍使用 `cover`、仅依赖 CSS 抵消的配置不一致。
+
+### Extension notes
+
+- 无需登录的公开平台可实现标准 `ActivityProvider`，注册后自动获得并发、超时、降级和通用首页展示能力。
+- 需要 Cookie、2FA 或长期会话的平台应采用 VRChat 的本地同步与净化快照模式，避免在公开 CI 中保存账号凭据。
+
 ## 0.4.0 — 2026-08-31
 
 ### Added
