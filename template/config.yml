@@ -1,0 +1,58 @@
+# Public starter configuration. `wblog init` copies template/ to private site/.
+# Image paths are relative to site/images/ after initialization.
+
+site:
+  title: wblog Starter
+  description: A portable personal hub for writing, photographs and small moments.
+  url: https://wblog-project.github.io
+  base: /wblog
+  locale: en
+  ogImage: ""
+  favicon: ""
+profile:
+  name: Your Name
+  greeting: Hi, I'm
+  bio: Tell visitors who you are and what you enjoy creating.
+  avatar: ""
+  heroImage: ""
+  status: Building a small corner of the web.
+  contactEmail: you@example.com
+appearance:
+  accent: "#9d68ff"
+  accentSoft: "#e5b0ff"
+  background: ""
+navigation:
+  - { label: Home, href: / }
+  - { label: About, href: /about }
+  - { label: Blog, href: /blog }
+  - { label: Gallery, href: /gallery }
+socials:
+  - { name: GitHub, icon: github, url: https://github.com/YOUR_NAME }
+integrations:
+  github: { enabled: false, username: "", maxRepos: 3 }
+  steam: { enabled: false, steamId: "" }
+  bilibili: { enabled: false, mid: "", maxVideos: 3 }
+  fallbackActivities:
+    - type: project
+      title: Personal Website
+      subtitle: Your first public project
+      metric: Ready to customize
+      href: https://github.com/YOUR_NAME
+      image: ""
+home:
+  modules:
+    activities: true
+    dailyLife: true
+    blog: true
+    gallery: true
+    music: true
+    about: true
+  music:
+    title: Your favourite song
+    artist: Your favourite artist
+    cover: ""
+    link: https://music.youtube.com/
+  aboutTags: [Creator, Night Owl, Photography]
+footer: Made with ♥ using wblog.
+deployment:
+  githubPagesRepository: ""

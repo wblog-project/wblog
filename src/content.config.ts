@@ -2,8 +2,11 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
+const siteDirectory = process.env.WBLOG_SITE_DIR === 'template' ? 'template' : 'site';
+const contentDirectory = (collection: string) => `./${siteDirectory}/content/${collection}`;
+
 const posts = defineCollection({
-  loader: glob({ base: './site/content/posts', pattern: '**/*.md' }),
+  loader: glob({ base: contentDirectory('posts'), pattern: '**/*.md' }),
   schema: ({ image }) => z.object({
     title: z.string().min(1),
     date: z.coerce.date(),
@@ -17,7 +20,7 @@ const posts = defineCollection({
 });
 
 const life = defineCollection({
-  loader: glob({ base: './site/content/life', pattern: '**/*.md' }),
+  loader: glob({ base: contentDirectory('life'), pattern: '**/*.md' }),
   schema: ({ image }) => z.object({
     title: z.string().min(1),
     date: z.coerce.date(),
@@ -27,7 +30,7 @@ const life = defineCollection({
 });
 
 const gallery = defineCollection({
-  loader: glob({ base: './site/content/gallery', pattern: '**/*.md' }),
+  loader: glob({ base: contentDirectory('gallery'), pattern: '**/*.md' }),
   schema: ({ image }) => z.object({
     title: z.string().min(1),
     date: z.coerce.date(),
@@ -37,7 +40,7 @@ const gallery = defineCollection({
 });
 
 const pages = defineCollection({
-  loader: glob({ base: './site/content/pages', pattern: '**/*.md' }),
+  loader: glob({ base: contentDirectory('pages'), pattern: '**/*.md' }),
   schema: ({ image }) => z.object({
     title: z.string().min(1),
     description: z.string().min(1),

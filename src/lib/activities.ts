@@ -62,16 +62,21 @@ async function steamActivities(): Promise<ActivityCard[]> {
   }));
 }
 
-async function bilibiliActivities(): Promise<ActivityCard[]> {
-  const { enabled, mid, maxVideos } = siteConfig.integrations.bilibili;
-  if (!enabled || !mid) return [];
-  const data = bilibiliSchema.parse(await fetchJson(`https://api.bilibili.com/x/space/arc/search?mid=${encodeURIComponent(mid)}&pn=1&ps=${maxVideos}&order=pubdate&jsonp=jsonp`));
+export function mapBilibiliActivities(input: unknown, mid: string): ActivityCard[] {
+  const data = bilibiliSchema.parse(input);
   return (data.data?.list.vlist || []).map((video) => ({
     type: 'bilibili', title: video.title || 'New Bilibili video', subtitle: video.description || 'Latest upload on Bilibili',
     metric: `${formatNumber(Number(video.play || 0))} plays${video.created ? ` · ${formatDate(new Date(video.created * 1000), { month: 'short', day: 'numeric' })}` : ''}`,
     href: video.bvid ? `https://www.bilibili.com/video/${video.bvid}/` : `https://space.bilibili.com/${mid}`,
     image: video.pic?.replace(/^http:/, 'https:') || '',
   }));
+}
+
+async function bilibiliActivities(): Promise<ActivityCard[]> {
+  const { enabled, mid, maxVideos } = siteConfig.integrations.bilibili;
+  if (!enabled || !mid) return [];
+  const data = await fetchJson(`https://api.bilibili.com/x/space/arc/search?mid=${encodeURIComponent(mid)}&pn=1&ps=${maxVideos}&order=pubdate&jsonp=jsonp`);
+  return mapBilibiliActivities(data, mid);
 }
 
 export async function getActivities(): Promise<ActivityCard[]> {

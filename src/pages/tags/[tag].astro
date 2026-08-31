@@ -7,7 +7,7 @@ import { siteConfig, withBase } from '../../lib/site-config';
 export async function getStaticPaths() {
   const posts = byNewest((await getCollection('posts')).filter((post) => !post.data.draft));
   const tags = [...new Set(posts.flatMap((post) => post.data.tags))];
-  return tags.map((tag) => ({ params: { tag: encodeURIComponent(tag) }, props: { tag, posts: posts.filter((post) => post.data.tags.includes(tag)) } }));
+  return tags.map((tag) => ({ params: { tag }, props: { tag, posts: posts.filter((post) => post.data.tags.includes(tag)) } }));
 }
 const { tag, posts } = Astro.props;
 ---

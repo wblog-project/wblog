@@ -4,7 +4,7 @@
 
 # wblog
 
-一个以 Personal Hub 为首页、使用 Markdown 写作的深色二次元静态博客框架。站点配置、内容和图片全部放在可独立迁移的 `site/` 目录中；框架代码与用户资料互不混杂。
+一个以 Personal Hub 为首页、使用 Markdown 写作的深色二次元静态博客框架。真实配置、文章和图片全部放在私有的 `site/` 目录中；源码仓库只维护不含个人资料的 `template/` 发布模板。
 
 ## 快速开始
 
@@ -12,6 +12,8 @@
 
 ```bash
 npm install
+npm run wblog -- init
+npm run wblog -- setup --minimal
 npm run wblog -- doctor
 npm run dev
 ```
@@ -32,7 +34,20 @@ npm run test:e2e
 npm run lighthouse
 ```
 
-## 可整体迁移的用户目录
+`init` 只在 `site/` 不存在时复制公开模板，绝不会覆盖已有站点。
+
+## 目录边界
+
+```text
+site/       # 你的真实站点；被 Git 整体忽略
+template/   # 源码仓库公开维护的可构建示例
+src/        # Astro 框架代码
+bin/        # wblog CLI
+tests/      # 单元、集成与浏览器测试
+docs/       # README 使用的项目素材
+```
+
+### 可整体迁移的用户目录
 
 ```text
 site/
@@ -50,7 +65,9 @@ site/
     └── general/           # 通用素材
 ```
 
-迁移站点时只需复制 `site/`。`src/` 和 `bin/` 均为框架实现，日常写作不需要修改。
+迁移站点时只需复制 `site/`。`.gitignore` 会忽略整个目录，因此文章、个人配置和原图不会再进入 `wblog` 框架仓库。请把 `site/` 另外备份到私人仓库、云盘或其他可靠位置；Pages 仓库只有生成后的静态文件，不能替代原稿备份。
+
+`template/` 与 `site/` 结构相同，但只包含通用配置、示例 Markdown 和原版 wblog Logo 占位图。CI 设置 `WBLOG_SITE_DIR=template` 来验证公开发布版本，不会读取本地私人内容。
 
 配置图片路径相对于 `site/images/`：
 
@@ -109,6 +126,7 @@ Gallery 与 Life 使用相同的 `{src, alt}` 图片数组，首图自动作为�
 ## 常用命令
 
 ```bash
+npm run wblog -- init
 npm run wblog -- setup --minimal
 npm run wblog -- config set profile.name "Rex"
 npm run wblog -- post new "Hello" --cover ./cover.jpg --cover-alt "夜空"
@@ -136,17 +154,17 @@ CLI 不会覆盖已有 Markdown 或图片，也拒绝把文件写出 `site/`。
 
 ## GitHub Pages
 
-仓库已包含 `.github/workflows/deploy.yml`。工作流默认执行完整测试与构建；若要从源码仓库发布项目型 Pages，请在 Settings → Pages 中选择 GitHub Actions，并添加值为 `true` 的仓库变量 `WBLOG_DEPLOY_PROJECT_PAGES`。
+仓库已包含 `.github/workflows/deploy.yml`。源码 CI 使用公开 `template/` 执行完整测试与构建；若要发布模板的项目型 Pages，请在 Settings → Pages 中选择 GitHub Actions，并添加值为 `true` 的仓库变量 `WBLOG_DEPLOY_PROJECT_PAGES`。
 
 ```bash
-# 检查、测试、构建，确认后提交并推送
-npm run wblog -- deploy --yes --message "content: update site"
+# 构建私有 site/，并发布到配置的独立 Pages 仓库
+npm run wblog -- deploy --yes --message "deploy: update site"
 
-# 同步 dist 到单独的根域 Pages 仓库（无需启用上述变量）
+# 等价的底层命令
 npm run wblog -- pages sync
 ```
 
-`pages sync` 使用 `site/config.yml` 中的 `deployment.githubPagesRepository`，只推送静态产物，不上传源码、依赖或密钥。
+`deploy` 不会执行 `git add`、提交文章或推送 `wblog` 源码仓库。它与 `pages sync` 都使用 `site/config.yml` 中的 `deployment.githubPagesRepository`，只推送生成后的静态产物，不上传原始 Markdown、原图、依赖或密钥。
 
 ## 已包含的站点能力
 
@@ -154,4 +172,4 @@ npm run wblog -- pages sync
 - Open Graph、X Card、canonical、favicon、Person/WebSite/BlogPosting 结构化数据。
 - 移动导航、画廊灯箱、键盘操作、减少动态效果偏好和无 JavaScript 内容降级。
 - GitHub、Steam、Bilibili 构建时动态与逐平台 fallback。
-- Astro 类型检查、Vitest 单元/CLI 集成测试和 GitHub Pages 自动部署。
+- 私有站点/公开模板隔离、Astro 类型检查、Vitest 单元/CLI 集成测试和可选 GitHub Pages 自动部署。

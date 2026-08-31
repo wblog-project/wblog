@@ -25,16 +25,24 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+        env:
+          WBLOG_SITE_DIR: template
       - run: npm run wblog -- doctor
         env:
           WBLOG_OFFLINE: "1"
+          WBLOG_SITE_DIR: template
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+        env:
+          WBLOG_SITE_DIR: template
       - run: npm run build
         env:
+          WBLOG_SITE_DIR: template
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
       - run: npm run lighthouse
+        env:
+          WBLOG_SITE_DIR: template
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist

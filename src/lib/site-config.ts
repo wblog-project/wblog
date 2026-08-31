@@ -56,14 +56,15 @@ export const configSchema = z.object({
 }).strict();
 
 export type SiteConfig = z.infer<typeof configSchema>;
-export const configPath = path.resolve(process.cwd(), 'site/config.yml');
+export const siteDirectory = process.env.WBLOG_SITE_DIR === 'template' ? 'template' : 'site';
+export const configPath = path.resolve(process.cwd(), siteDirectory, 'config.yml');
 
 export function readSiteConfig(): SiteConfig {
   try {
     return configSchema.parse(parse(fs.readFileSync(configPath, 'utf8')));
   } catch (error) {
     const detail = error instanceof z.ZodError ? z.prettifyError(error) : error instanceof Error ? error.message : String(error);
-    throw new Error(`Invalid site/config.yml:\n${detail}`);
+    throw new Error(`Invalid ${siteDirectory}/config.yml:\n${detail}`);
   }
 }
 

@@ -8,7 +8,10 @@ import { createInterface } from 'node:readline/promises';
 import { parse, stringify } from 'yaml';
 
 const root = process.cwd();
-const siteRoot = path.join(root, 'site');
+const siteDirectory = process.env.WBLOG_SITE_DIR === 'template' ? 'template' : 'site';
+const siteRoot = path.join(root, siteDirectory);
+const privateSiteRoot = path.join(root, 'site');
+const templateRoot = path.join(root, 'template');
 const imagesRoot = path.join(siteRoot, 'images');
 const contentRoot = path.join(siteRoot, 'content');
 const configPath = path.join(siteRoot, 'config.yml');
@@ -21,6 +24,7 @@ Usage:
 
 Commands:
   help [command]                         Show all help or help for one command
+  init                                   Create private site/ from template/
   setup [--minimal|--detailed]           Guided setup for profile and platform accounts
   config show                             Print the current config.yml
   config set <path> <value>               Update a nested config value
@@ -37,10 +41,10 @@ Commands:
   test                                    Run unit tests
   status                                  Show repository and deployment configuration
   doctor                                  Check Node, config, images and Git readiness
-  deploy --yes [--message text] [--no-test]
-                                          Build, test, commit project changes and push
+  deploy --yes [--message text]           Build and publish site/ to its Pages repository
 
 Examples:
+  npm run wblog -- init
   npm run wblog -- config set profile.name "Rex"
   npm run wblog -- setup --minimal
   npm run wblog -- setup --detailed
@@ -49,10 +53,11 @@ Examples:
   npm run wblog -- life new "A sunny walk" --summary "Spring arrived" --photo ~/Desktop/sun.jpg
   npm run wblog -- gallery new "Night sky" --description "First frame" --image ./sky.png
   npm run wblog -- pages sync
-  npm run wblog -- deploy --yes --message "content: add weekly photos"
+  npm run wblog -- deploy --yes --message "deploy: add weekly photos"
 `;
 
 const helpByCommand = {
+  init: `init\n\n  init\n    Copies the public template/ into a new private site/ directory. Existing site/ data is never overwritten.`,
   setup: `setup\n\n  setup [--minimal|--detailed]\n    --minimal configures the URL, name, contact email and core profile links in about two minutes.\n    --detailed additionally configures visual assets, bio, homepage modules, VRChat, Bilibili, music and Pages publishing.\n    Without a flag, choose a mode in the wizard.\n\n    Steam accepts both https://steamcommunity.com/id/custom-name/ and https://steamcommunity.com/profiles/76561198.../.\n    A 17-digit ID is detected automatically from /profiles/ URLs; provide it manually only when using an /id/ custom URL.\n    Press Enter at any question to leave the current value unchanged. Supplying a Steam ID enables Steam activity sync.`,
   config: `config\n\n  config show\n    Print the parsed project configuration.\n\n  config set <path> <value>\n    Set a dot-separated value, such as profile.name or home.modules.blog.\n    true, false and numeric values are stored using their native YAML types.\n\n  config wizard\n    Alias for the interactive setup wizard.`,
   post: `post new\n\n  post new <title> [--tags one,two] [--cover file] [--cover-alt text] [--draft] [--description text] [--date YYYY-MM-DD]\n    Creates site/content/posts/<slug>.md and copies an optional cover into site/images/posts/<slug>/.`,
@@ -60,12 +65,12 @@ const helpByCommand = {
   gallery: `gallery new\n\n  gallery new <title> --description <text> --image <file> [--image file] [--date YYYY-MM-DD]\n    Creates a Gallery entry and copies images to site/images/gallery/<slug>/.`,
   asset: `asset add\n\n  asset add <file> [--to general]\n    Copies a local file into a category under site/images/. The destination cannot escape that directory.`,
   pages: `pages sync\n\n  pages sync [--repository git@github.com:OWNER/OWNER.github.io.git]\n    Builds with a root-domain base path, then publishes only dist/ to the configured GitHub Pages repository.\n    The repository defaults to deployment.githubPagesRepository in site/config.yml.`,
-  deploy: `deploy\n\n  deploy --yes [--message text] [--no-test]\n    Shows changed files, then builds, tests, commits and pushes origin/main. --yes is required to acknowledge the external change.`,
+  deploy: `deploy\n\n  deploy --yes [--message text]\n    Builds the private site/ and publishes static output to deployment.githubPagesRepository. It never commits site/ to the framework repository. --yes acknowledges the external change.`,
 };
 
 function fail(message) { console.error(`\nError: ${message}\nRun \`npm run wblog -- help\` for usage.`); process.exit(1); }
 function info(message) { console.log(`✓ ${message}`); }
-function project() { if (!existsSync(configPath) || !existsSync(path.join(root, 'package.json'))) fail('Run this command from the wblog project root. Expected site/config.yml.'); }
+function project() { if (!existsSync(configPath) || !existsSync(path.join(root, 'package.json'))) fail(`Run this command from the wblog project root. Expected ${siteDirectory}/config.yml. New clone? Run \`npm run wblog -- init\`.`); }
 function run(command, args, options = {}) { const result = spawnSync(command, args, { cwd: root, stdio: 'inherit', ...options }); if (result.error) fail(result.error.message); if (result.status !== 0) process.exit(result.status ?? 1); }
 function readConfig() { project(); return parse(readFileSync(configPath, 'utf8')); }
 function writeConfig(config) { writeFileSync(configPath, `${configGuide}${stringify(config)}`, 'utf8'); info('Updated config.yml'); }
@@ -82,18 +87,11 @@ function steamIdFromProfile(value) { const match = value.match(/^https?:\/\/stea
 function githubUsernameFromInput(value) { if (!validUrl(value)) return value; const url = new URL(value); if (url.hostname.toLowerCase() !== 'github.com') return value; return url.pathname.split('/').filter(Boolean)[0] || ''; }
 function setSocialUrl(config, name, icon, url) { const existing = config.socials?.find((social) => social.name === name); if (existing) existing.url = url; else { config.socials ||= []; config.socials.push({ name, icon, url }); } }
 function frontmatter(data, body = '') { return `---\n${stringify(data)}---\n\n${body}`; }
-function writeStarterFile(file, contents) { if (!existsSync(file)) { mkdirSync(path.dirname(file), { recursive: true }); writeFileSync(file, contents, 'utf8'); return true; } return false; }
-function generateStarterContent() {
-  const sampleImage = path.join(imagesRoot, 'general/wblog-starter.svg');
-  const imageReference = '../../images/general/wblog-starter.svg';
-  const files = [
-    [sampleImage, `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#19143e"/><stop offset=".55" stop-color="#57387a"/><stop offset="1" stop-color="#d06d9e"/></linearGradient></defs><rect width="1600" height="900" fill="url(#g)"/><circle cx="1250" cy="180" r="100" fill="#fff1d8" opacity=".88"/><path d="M0 680Q240 510 460 690T920 620T1320 700T1600 610V900H0Z" fill="#10162f" opacity=".72"/><text x="100" y="690" fill="#fff" font-family="sans-serif" font-size="76" font-weight="700">Your first little moment</text><text x="105" y="755" fill="#e5ccff" font-family="sans-serif" font-size="30">Replace this starter image with one of your own.</text></svg>`],
-    [path.join(contentRoot, 'posts/_example-first-post.md'), frontmatter({ title: 'Welcome to my space', date: dateToday(), description: 'A starter post generated by wblog setup.', tags: ['Start here'], cover: imageReference, coverAlt: 'Abstract purple starter artwork', draft: false }, `This sample is safe to edit or delete.\n\n![Starter artwork](${imageReference})\n\nAll portable content and images live in \`site/\`.\n`)],
-    [path.join(contentRoot, 'life/_example-first-moment.md'), frontmatter({ title: 'My first small moment', date: dateToday(), summary: 'A starter Daily Life entry with one image.', images: [{ src: imageReference, alt: 'Abstract purple starter artwork' }] }, `Write a little memory here.\n`)],
-    [path.join(contentRoot, 'gallery/_example-first-frame.md'), frontmatter({ title: 'First frame', date: dateToday(), description: 'A starter gallery item. Replace it with your own photo.', images: [{ src: imageReference, alt: 'Abstract purple starter artwork' }] }, `Add your gallery notes here.\n`)],
-  ];
-  const generated = files.filter(([file, contents]) => writeStarterFile(file, contents)).length;
-  if (generated) info(`Generated ${generated} starter file(s): one post, one life entry, one gallery entry and a test image.`);
+function commandInit() {
+  if (!existsSync(path.join(root, 'package.json')) || !existsSync(path.join(templateRoot, 'config.yml'))) fail('Run this command from a complete wblog checkout.');
+  if (existsSync(privateSiteRoot)) fail('Refusing to overwrite existing site/. Move or remove it first if you really want to reinitialize.');
+  cpSync(templateRoot, privateSiteRoot, { recursive: true });
+  info('Created private site/ from template/. Git ignores this directory by default.');
 }
 function ensureFresh(file) { if (existsSync(file)) fail(`Refusing to overwrite ${path.relative(root, file)}.`); mkdirSync(path.dirname(file), { recursive: true }); }
 function copyContentImage(source, kind, slug) { const sourcePath = path.resolve(root, source); if (!existsSync(sourcePath) || !statSync(sourcePath).isFile()) fail(`Image not found: ${source}`); const extension = path.extname(sourcePath).toLowerCase(); if (!['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif'].includes(extension)) fail(`Unsupported image type: ${extension || 'none'}`); const filename = path.basename(sourcePath).replace(/[^\p{L}\p{N}._-]+/gu, '-'); const destination = path.join(imagesRoot, kind, slug, filename);
@@ -127,7 +125,7 @@ async function commandSetup(args = []) {
     if (name) { config.profile.name = name; changed = true; }
     const email = await ask('Contact email', config.profile?.contactEmail, 'Used by the Contact button — Enter to skip');
     if (email) { if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fail('Contact email is invalid.'); config.profile.contactEmail = email; changed = true; }
-    const githubInput = await ask('GitHub username or profile URL', config.integrations?.github?.username, 'Examples: REXWindW or https://github.com/REXWindW — Enter to skip');
+    const githubInput = await ask('GitHub username or profile URL', config.integrations?.github?.username, 'Examples: YOUR_NAME or https://github.com/YOUR_NAME — Enter to skip');
     if (githubInput) { const github = githubUsernameFromInput(githubInput); if (!github || /[/?#]/.test(github)) fail('GitHub username or profile URL is invalid.'); config.integrations.github.username = github; setSocialUrl(config, 'GitHub', 'github', `https://github.com/${github}`); changed = true; }
     const steamProfile = await ask('Steam profile URL', config.socials?.find((social) => social.name === 'Steam')?.url, 'Accepted: /id/custom-name/ or /profiles/76561198000000000/ — Enter to skip');
     const detectedSteamId = steamProfile ? steamIdFromProfile(steamProfile) : '';
@@ -175,9 +173,8 @@ async function commandSetup(args = []) {
       if (pagesRepo) { config.deployment ||= {}; config.deployment.githubPagesRepository = pagesRepo; changed = true; }
     }
     if (changed) writeConfig(config);
-    generateStarterContent();
     if (changed) { if (config.integrations.steam.enabled) info('Steam sync is enabled. Add STEAM_API_KEY to .env locally and GitHub Actions Secrets before publishing.'); info('Setup complete. Run `npm run wblog -- doctor` to verify local assets, then `npm run wblog -- deploy` to publish.'); }
-    else info('No settings changed; starter files were checked without overwriting anything.');
+    else info('No settings changed.');
   } finally { terminal.close(); }
 }
 function commandPost(args) { const { positionals, flags } = parseArgs(args); if (positionals[0] !== 'new' || !positionals.slice(1).join(' ')) fail('Use: post new <title> [options]'); const title = positionals.slice(1).join(' '); const slug = slugify(title); const file = path.join(contentRoot, 'posts', `${slug}.md`); ensureFresh(file); const tags = String(flag(flags, 'tags', '')).split(',').map((tag) => tag.trim()).filter(Boolean); const coverSource = flag(flags, 'cover', ''); const cover = coverSource && coverSource !== true ? copyContentImage(coverSource, 'posts', slug) : undefined; const data = { title, date: flag(flags, 'date', dateToday()), description: flag(flags, 'description', `Notes about ${title}.`), tags, ...(cover ? { cover, coverAlt: flag(flags, 'cover-alt', title) } : {}), draft: Boolean(flag(flags, 'draft', false)) }; writeFileSync(file, frontmatter(data, 'Write your post here.\n'), 'utf8'); info(`Created ${path.relative(root, file)}`); }
@@ -226,10 +223,15 @@ function commandPages(args) {
 function markdownFiles(directory) { if (!existsSync(directory)) return []; return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => { const file = path.join(directory, entry.name); return entry.isDirectory() ? markdownFiles(file) : entry.name.endsWith('.md') ? [file] : []; }); }
 function contentMediaAreValid() { for (const file of markdownFiles(contentRoot)) { const source = readFileSync(file, 'utf8'); const frontmatterMatch = source.match(/^---\n([\s\S]*?)\n---/); if (!frontmatterMatch) return false; const data = parse(frontmatterMatch[1]); const references = [data.cover, data.portrait, ...(Array.isArray(data.images) ? data.images.map((image) => typeof image === 'string' ? image : image?.src) : [])].filter(Boolean); if (references.some((reference) => !existsSync(path.resolve(path.dirname(file), reference)))) return false; if (Array.isArray(data.images) && data.images.some((image) => typeof image !== 'object' || !image.alt)) return false; } return true; }
 function commandDoctor() { project(); const config = readConfig(); const [nodeMajor, nodeMinor] = process.versions.node.split('.').map(Number); const configImages = [config.site?.ogImage, config.site?.favicon, config.profile?.avatar, config.profile?.heroImage, config.appearance?.background, config.home?.music?.cover].filter(Boolean); const checks = [ ['Node.js 22.19+', nodeMajor > 22 || (nodeMajor === 22 && nodeMinor >= 19)], ['Portable site directory', existsSync(contentRoot) && existsSync(imagesRoot)], ['Configuration schema', spawnSync('npm', ['exec', 'astro', 'check'], { cwd: root, stdio: 'ignore', env: { ...process.env, WBLOG_OFFLINE: '1' } }).status === 0], ['Configured images exist', configImages.every((image) => validSiteImageRef(image) && existsSync(path.join(imagesRoot, image)))], ['Content images and alt text', contentMediaAreValid()], ['Git repository', spawnSync('git', ['rev-parse', '--is-inside-work-tree'], { cwd: root, encoding: 'utf8' }).status === 0], ['Git remote origin', spawnSync('git', ['remote', 'get-url', 'origin'], { cwd: root, encoding: 'utf8' }).status === 0] ]; let bad = false; for (const [label, ok] of checks) { console.log(`${ok ? '✓' : '✗'} ${label}`); bad ||= !ok; } if (bad) process.exit(1); }
-function commandDeploy(args) { const { flags } = parseArgs(args); if (!flag(flags, 'yes', false)) fail('Deploy changes remote state. Review `git status`, then rerun with --yes.'); const status = spawnSync('git', ['status', '--porcelain'], { cwd: root, encoding: 'utf8' }); if (status.status !== 0) fail('Git is not available. Run wblog doctor for details.'); if (!status.stdout.trim()) { info('Nothing to deploy; working tree is clean.'); return; } console.log(status.stdout.trim()); run('npm', ['run', 'build']); if (!flag(flags, 'no-test', false)) run('npm', ['test']); run('git', ['add', '.']); run('git', ['commit', '-m', String(flag(flags, 'message', 'content: update wblog site'))]); run('git', ['push', 'origin', 'main']); info('Pushed to GitHub. CI will validate the site; enabled project Pages deployments publish automatically.'); }
+function commandDeploy(args) {
+  const { flags } = parseArgs(args);
+  if (!flag(flags, 'yes', false)) fail('Deploy changes the configured Pages repository. Review your site, then rerun with --yes.');
+  commandPages(['sync', ...args]);
+}
 
 const [command = 'help', ...rest] = process.argv.slice(2);
 if (command === 'help' || command === '--help' || command === '-h') { console.log(rest[0] ? helpByCommand[rest[0]] || usage : usage); }
+else if (command === 'init') commandInit();
 else if (command === 'config' && rest[0] === 'wizard') await commandSetup(rest.slice(1));
 else if (command === 'config') commandConfig(rest);
 else if (command === 'setup') await commandSetup(rest);
