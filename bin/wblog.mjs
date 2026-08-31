@@ -77,11 +77,12 @@ function info(message) { console.log(`✓ ${message}`); }
 function printBuildReport(reportPath) {
   const report = readBuildReport(reportPath);
   const labels = { live: 'live API', snapshot: 'saved snapshot', fallback: 'configured fallback', unavailable: 'unavailable', disabled: 'disabled' };
+  const platformNames = { github: 'GitHub', bilibili: 'Bilibili', steam: 'Steam', VRChat: 'VRChat' };
   const entries = Object.entries(report);
   if (!entries.length) return;
   console.log('\nBuild data sources:');
   for (const [name, result] of entries) {
-    const displayName = name.charAt(0).toUpperCase() + name.slice(1);
+    const displayName = platformNames[name] || name.charAt(0).toUpperCase() + name.slice(1);
     console.log(`  ${displayName}: ${labels[result.source] || result.source}${result.detail ? ` (${result.detail})` : ''}`);
   }
 }
