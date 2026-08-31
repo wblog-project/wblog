@@ -34,7 +34,8 @@ wblog 把“博客程序”和“属于你的资料”划成清晰边界。文�
 | 完整内容模型 | Blog、Life、Gallery、About、标签、上一篇/下一篇 |
 | 图片管线 | 本地图片生成响应式 AVIF/WebP，保留准确 alt 文本 |
 | 双语界面 | `en` 与 `zh-CN`，覆盖日期、数字和无障碍文案 |
-| 静态集成 | GitHub、Steam、Bilibili 构建时同步，失败时逐平台降级 |
+| VRChat 优先 | 私有 CLI 登录、构建时资料/最近世界快照、独立页面与首页主卡 |
+| 静态集成 | VRChat、GitHub、Steam、Bilibili 构建时同步，失败时逐平台降级 |
 | 发布能力 | 根域 Pages 仓库与可选 Project Pages，静态产物独立推送 |
 | 质量门禁 | Astro check、Vitest、Playwright、Axe、Lighthouse |
 
@@ -77,6 +78,7 @@ wblog/
 ```text
 site/
 ├── config.yml
+├── .wblog/vrchat/         # 本地会话与净化后的构建快照
 ├── content/
 │   ├── posts/             # 博客长文
 │   ├── life/              # 日常记录
@@ -87,6 +89,7 @@ site/
     ├── posts/
     ├── life/
     ├── gallery/
+    ├── generated/vrchat/  # 构建时下载的 VRChat 图片
     └── general/
 ```
 
@@ -102,6 +105,7 @@ npm run wblog -- gallery new "Night" --description "第一帧" --image ./night.j
 
 # 配置、检查与预览
 npm run wblog -- config set profile.name "Your Name"
+npm run wblog -- vrchat login
 npm run wblog -- doctor
 npm run build
 npm run preview

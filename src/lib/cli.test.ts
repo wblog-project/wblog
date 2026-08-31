@@ -52,4 +52,24 @@ describe('portable content CLI', () => {
     expect(result.status).toBe(1);
     expect(result.stderr).toContain('must remain inside site/images');
   });
+
+  it('does not allow VRChat credentials through a non-interactive terminal', () => {
+    const directory = fixture();
+    const result = spawnSync(process.execPath, [cli, 'vrchat', 'login'], { cwd: directory, encoding: 'utf8', env: privateSiteEnvironment });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('requires an interactive terminal');
+  });
+
+  it('reports VRChat session state without printing session contents', () => {
+    const directory = fixture();
+    const state = path.join(directory, 'site/.wblog/vrchat');
+    mkdirSync(state, { recursive: true });
+    writeFileSync(path.join(state, 'session.json'), 'authcookie-super-secret');
+    writeFileSync(path.join(state, 'snapshot.json'), JSON.stringify({ schemaVersion: 1, syncedAt: '2026-08-31T03:00:00.000Z', recentWorlds: [] }));
+    const result = spawnSync(process.execPath, [cli, 'vrchat', 'status'], { cwd: directory, encoding: 'utf8', env: privateSiteEnvironment });
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('Session: saved locally');
+    expect(result.stdout).toContain('0 recent worlds');
+    expect(result.stdout).not.toContain('super-secret');
+  });
 });

@@ -6,6 +6,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { createInterface } from 'node:readline/promises';
 import { parse, stringify } from 'yaml';
+import { commandVrchat } from './vrchat.mjs';
 
 const root = process.cwd();
 const siteDirectory = process.env.WBLOG_SITE_DIR === 'template' ? 'template' : 'site';
@@ -34,6 +35,7 @@ Commands:
                                           Add a Daily Life entry and copy photos
   gallery new <title> --description <text> --image <file> [--image file]
                                           Add a Gallery entry and copy images
+  vrchat login|sync|status|logout           Manage VRChat login and static snapshots
   asset add <file> [--to general]         Copy a local asset into site/images/
   pages sync [--repository URL]            Build and sync static output to a GitHub Pages repo
   build                                   Run the production build
@@ -63,6 +65,7 @@ const helpByCommand = {
   post: `post new\n\n  post new <title> [--tags one,two] [--cover file] [--cover-alt text] [--draft] [--description text] [--date YYYY-MM-DD]\n    Creates site/content/posts/<slug>.md and copies an optional cover into site/images/posts/<slug>/.`,
   life: `life new\n\n  life new <title> --summary <text> --photo <file> [--photo file] [--date YYYY-MM-DD]\n    Creates a Daily Life entry and copies photos to site/images/life/<slug>/.`,
   gallery: `gallery new\n\n  gallery new <title> --description <text> --image <file> [--image file] [--date YYYY-MM-DD]\n    Creates a Gallery entry and copies images to site/images/gallery/<slug>/.`,
+  vrchat: `vrchat\n\n  vrchat login\n    Prompts for credentials and 2FA, stores only session cookies locally, then creates a public-data snapshot.\n\n  vrchat sync\n    Refreshes the profile and recent-world snapshot.\n\n  vrchat status\n    Shows local session and snapshot status without printing secrets.\n\n  vrchat logout\n    Removes the local session while keeping the last public snapshot.`,
   asset: `asset add\n\n  asset add <file> [--to general]\n    Copies a local file into a category under site/images/. The destination cannot escape that directory.`,
   pages: `pages sync\n\n  pages sync [--repository git@github.com:OWNER/OWNER.github.io.git]\n    Builds with a root-domain base path, then publishes only dist/ to the configured GitHub Pages repository.\n    The repository defaults to deployment.githubPagesRepository in site/config.yml.`,
   deploy: `deploy\n\n  deploy --yes [--message text]\n    Builds the private site/ and publishes static output to deployment.githubPagesRepository. It never commits site/ to the framework repository. --yes acknowledges the external change.`,
@@ -143,7 +146,7 @@ async function commandSetup(args = []) {
       const background = await ask('Background image path', config.appearance?.background, 'Example: profile/background.webp; use - to remove it');
       if (background) { if (background === '-') config.appearance.background = ''; else if (!validSiteImageRef(background)) fail('Background must be relative to site/images/.'); else config.appearance.background = background; changed = true; }
       const vrchat = await ask('VRChat profile URL', config.socials?.find((social) => social.name === 'VRChat')?.url, 'Example: https://vrchat.com/home/user/usr_xxx — Enter to skip');
-      if (vrchat) { if (!validUrl(vrchat) || !/^(https?:\/\/)?vrchat\.com\//i.test(vrchat)) fail('Use a valid vrchat.com profile URL.'); setSocialUrl(config, 'VRChat', 'badge', vrchat); changed = true; }
+      if (vrchat) { if (!validUrl(vrchat) || !/^(https?:\/\/)?vrchat\.com\//i.test(vrchat)) fail('Use a valid vrchat.com profile URL.'); setSocialUrl(config, 'VRChat', 'badge', vrchat); config.integrations.vrchat = { enabled: true, maxRecentWorlds: config.integrations.vrchat?.maxRecentWorlds || 6 }; changed = true; }
       const bilibili = await ask('Bilibili space URL', config.socials?.find((social) => social.name === 'Bilibili')?.url, 'Example: https://space.bilibili.com/123456 — Enter to skip');
       if (bilibili) {
         const mid = bilibili.match(/^https?:\/\/space\.bilibili\.com\/(\d+)\/?(?:\?.*)?$/i)?.[1];
@@ -238,6 +241,7 @@ else if (command === 'setup') await commandSetup(rest);
 else if (command === 'post') commandPost(rest);
 else if (command === 'life') commandLife(rest);
 else if (command === 'gallery') commandGallery(rest);
+else if (command === 'vrchat') { try { await commandVrchat(root, siteRoot, rest); } catch (error) { fail(error instanceof Error ? error.message : String(error)); } }
 else if (command === 'asset') commandAsset(rest);
 else if (command === 'pages') commandPages(rest);
 else if (command === 'build') run('npm', ['run', 'build']);

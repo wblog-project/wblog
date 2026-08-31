@@ -1,7 +1,7 @@
 ---
-import { ArrowUpRight, AtSign, Badge, Camera, ChevronLeft, ChevronRight, CodeXml, Gamepad2, Heart, Mail, Menu, Music2, Play, Sparkles, Tv, X } from '@lucide/astro';
+import { ArrowUpRight, AtSign, Badge, Camera, ChevronLeft, ChevronRight, CodeXml, Eye, Gamepad2, Heart, Mail, MapPin, Menu, Music2, Play, RefreshCw, Sparkles, Tv, Users, X } from '@lucide/astro';
 const { name, size = 18 } = Astro.props;
-const icons = { github: CodeXml, 'gamepad-2': Gamepad2, badge: Badge, tv: Tv, twitter: AtSign, youtube: Play, instagram: Camera, 'arrow-up-right': ArrowUpRight, sparkles: Sparkles, code: CodeXml, heart: Heart, camera: Camera, music: Music2, mail: Mail, left: ChevronLeft, right: ChevronRight, menu: Menu, close: X };
+const icons = { github: CodeXml, 'gamepad-2': Gamepad2, badge: Badge, tv: Tv, twitter: AtSign, youtube: Play, instagram: Camera, 'arrow-up-right': ArrowUpRight, sparkles: Sparkles, code: CodeXml, heart: Heart, camera: Camera, music: Music2, mail: Mail, users: Users, eye: Eye, 'map-pin': MapPin, refresh: RefreshCw, left: ChevronLeft, right: ChevronRight, menu: Menu, close: X };
 const Component = icons[name as keyof typeof icons] || Sparkles;
 ---
 <Component size={size} stroke-width={1.8} />

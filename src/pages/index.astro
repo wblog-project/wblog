@@ -3,12 +3,14 @@ import { getCollection } from 'astro:content';
 import ActivityCard from '../components/ActivityCard.astro';
 import Icon from '../components/Icon.astro';
 import SiteImage from '../components/SiteImage.astro';
+import VrchatWorldCard from '../components/VrchatWorldCard.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getActivities } from '../lib/activities';
 import { byNewest, entrySlug } from '../lib/content';
 import { resolveSiteImage } from '../lib/images';
 import { formatDate, t } from '../lib/i18n';
 import { siteConfig, withBase } from '../lib/site-config';
+import { readVrchatSnapshot } from '../lib/vrchat';
 
 const [activities, allPosts, allLife, allGallery] = await Promise.all([
   getActivities(), getCollection('posts'), getCollection('life'), getCollection('gallery'),
@@ -20,6 +22,10 @@ const { profile, socials, home } = siteConfig;
 const heroImage = await resolveSiteImage(profile.heroImage);
 const musicCover = await resolveSiteImage(home.music.cover);
 const featuredSocials = socials.slice(0, 4);
+const vrchat = readVrchatSnapshot();
+const vrchatProfileImage = vrchat?.profile.image ? await resolveSiteImage(vrchat.profile.image) : undefined;
+const vrchatPreview = vrchat?.recentWorlds.slice(0, 3) || [];
+const vrchatWorldImages = await Promise.all(vrchatPreview.map((world) => world.image ? resolveSiteImage(world.image) : undefined));
 ---
 <BaseLayout>
   <section class="hero shell">
@@ -43,6 +49,15 @@ const featuredSocials = socials.slice(0, 4);
   <section class="platform-strip shell" aria-label={t('platforms')}>
     {featuredSocials.map((social) => <a href={social.url} target="_blank" rel="noreferrer"><Icon name={social.icon} /><span><strong>{social.name}</strong><small>{t('visit')}</small></span><Icon name="arrow-up-right" size={16} /></a>)}
   </section>
+
+  {home.modules.vrchat && vrchat && <section class="vrchat-home shell">
+    <div class="vrchat-home-profile">
+      <div class="vrchat-home-avatar">{vrchatProfileImage ? <SiteImage src={vrchatProfileImage} alt="" widths={[180, 360]} sizes="116px" /> : <span>{vrchat.profile.displayName.slice(0, 1)}</span>}</div>
+      <div><p class="eyebrow"><Icon name="badge" size={14} /> VRChat</p><h2>{vrchat.profile.displayName}</h2><p>{vrchat.profile.statusDescription || vrchat.profile.bio}</p><span><Icon name="users" size={14} /> {vrchat.profile.friendCount} {t('vrchatFriends')}</span></div>
+      <a class="primary-action" href={withBase('/vrchat')}>{t('vrchatExplore')} <Icon name="arrow-up-right" size={15} /></a>
+    </div>
+    {vrchatPreview.length > 0 && <div class="vrchat-home-worlds">{vrchatPreview.map((world, index) => <VrchatWorldCard world={world} image={vrchatWorldImages[index]} compact index={index} />)}</div>}
+  </section>}
 
   {home.modules.activities && <section class="section shell">
     <div class="section-heading"><div><p class="eyebrow"><Icon name="sparkles" size={14} /> {t('activitiesEyebrow')}</p><h2>{t('activitiesTitle')}</h2><p>{t('activitiesDescription')}</p></div><div class="scroll-hint">{t('swipe')}</div></div>

@@ -47,6 +47,8 @@ npm run wblog -- doctor
 WBLOG_OFFLINE=1 npm run build
 ```
 
+普通 production build 会先尝试刷新 VRChat 快照。本地 Cookie 失效时运行 `npm run wblog -- vrchat login`；自动化环境不应保存账号密码或 2FA secret，可使用已生成快照离线构建。
+
 发布后建议检查首页、`/blog/`、`/life/`、`/gallery/`、`/rss.xml` 和 `/robots.txt`。
 
 ## 网络代理

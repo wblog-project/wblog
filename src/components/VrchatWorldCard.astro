@@ -1,0 +1,23 @@
+---
+import type { ImageMetadata } from 'astro';
+import Icon from './Icon.astro';
+import SiteImage from './SiteImage.astro';
+import { formatNumber, t } from '../lib/i18n';
+import type { VrchatSnapshot } from '../lib/vrchat';
+
+type World = VrchatSnapshot['recentWorlds'][number];
+const { world, image, compact = false, index = 0 } = Astro.props as { world: World; image?: ImageMetadata; compact?: boolean; index?: number };
+---
+<a class:list={['vrchat-world-card', { compact }]} style={`--card-index:${index}`} href={world.href} target="_blank" rel="noreferrer">
+  <div class="vrchat-world-art">
+    {image ? <SiteImage src={image} alt="" widths={[480, 800, 1200]} sizes="(max-width: 700px) 100vw, 33vw" /> : <span><Icon name="map-pin" size={30} /></span>}
+    <span class="vrchat-world-index">#{String(index + 1).padStart(2, '0')}</span>
+  </div>
+  <div class="vrchat-world-copy">
+    <small><Icon name="map-pin" size={13} /> VRChat World</small>
+    <h3>{world.name}</h3>
+    {world.description && <p>{world.description}</p>}
+    <div><span title={t('vrchatVisits')} aria-label={`${formatNumber(world.visits)} ${t('vrchatVisits')}`}><Icon name="eye" size={12} />{formatNumber(world.visits)}</span><span title={t('vrchatFavorites')} aria-label={`${formatNumber(world.favorites)} ${t('vrchatFavorites')}`}><Icon name="heart" size={12} />{formatNumber(world.favorites)}</span>{world.capacity > 0 && <span title={t('vrchatCapacity')} aria-label={`${world.capacity} ${t('vrchatCapacity')}`}><Icon name="users" size={12} />{world.capacity}</span>}</div>
+  </div>
+  <Icon name="arrow-up-right" size={17} />
+</a>

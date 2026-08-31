@@ -53,6 +53,18 @@ home:
 
 Steam API Key 只应放在本地 `.env` 或 GitHub Actions Secret `STEAM_API_KEY`，不要写入 `site/config.yml`。
 
+## VRChat
+
+```yaml
+integrations:
+  vrchat: { enabled: true, maxRecentWorlds: 6 }
+home:
+  modules:
+    vrchat: true
+```
+
+运行 `npm run wblog -- vrchat login` 完成一次本地交互式登录。账号、密码和 2FA secret 不会保存；Cookie、快照和下载图片都位于被 Git 忽略的 `site/` 内。静态页面不会包含邮箱、好友 ID、当前位置或实例信息。VRChat 第三方 API 是社区维护接口，可能无通知变更，因此构建会沿用最近一次有效快照作为降级。
+
 ## CLI 修改配置
 
 ```bash

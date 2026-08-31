@@ -44,10 +44,11 @@ export const configSchema = z.object({
     github: z.object({ enabled: z.boolean(), username: z.string(), maxRepos: z.number().int().min(1).max(12).default(3) }).strict(),
     steam: z.object({ enabled: z.boolean(), steamId: z.string().regex(/^(|\d{17})$/, 'Steam ID must be empty or 17 digits') }).strict(),
     bilibili: z.object({ enabled: z.boolean(), mid: z.string().regex(/^(|\d+)$/), maxVideos: z.number().int().min(1).max(6).default(3) }).strict(),
+    vrchat: z.object({ enabled: z.boolean(), maxRecentWorlds: z.number().int().min(1).max(12).default(6) }).strict().default({ enabled: false, maxRecentWorlds: 6 }),
     fallbackActivities: z.array(activitySchema),
   }).strict(),
   home: z.object({
-    modules: z.object({ activities: z.boolean(), dailyLife: z.boolean(), blog: z.boolean(), gallery: z.boolean(), music: z.boolean(), about: z.boolean() }).strict(),
+    modules: z.object({ vrchat: z.boolean().default(true), activities: z.boolean(), dailyLife: z.boolean(), blog: z.boolean(), gallery: z.boolean(), music: z.boolean(), about: z.boolean() }).strict(),
     music: z.object({ title: z.string().min(1), artist: z.string().min(1), cover: siteImagePath, link: z.url() }).strict(),
     aboutTags: z.array(z.string().min(1)),
   }).strict(),

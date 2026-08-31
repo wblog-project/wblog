@@ -29,3 +29,11 @@ test('content routes and gallery lightbox work', async ({ page }) => {
   await image.click();
   await expect(page.locator('[data-lightbox]')).toHaveJSProperty('open', true);
 });
+
+test('VRChat is a first-class navigation destination with a safe empty state', async ({ page }) => {
+  await page.goto('/wblog/vrchat/');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText(/VRChat/i);
+  await expect(page.getByText('npm run wblog -- vrchat login')).toBeVisible();
+  const vrchatLink = page.locator('#primary-navigation a[href="/wblog/vrchat"]');
+  await expect(vrchatLink).toHaveAttribute('aria-current', 'page');
+});

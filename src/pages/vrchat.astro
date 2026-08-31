@@ -1,0 +1,45 @@
+---
+import Icon from '../components/Icon.astro';
+import SiteImage from '../components/SiteImage.astro';
+import VrchatWorldCard from '../components/VrchatWorldCard.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { resolveSiteImage } from '../lib/images';
+import { formatDate, formatNumber, t } from '../lib/i18n';
+import { siteConfig } from '../lib/site-config';
+import { readVrchatSnapshot } from '../lib/vrchat';
+
+const snapshot = readVrchatSnapshot();
+const profileImage = snapshot?.profile.image ? await resolveSiteImage(snapshot.profile.image) : undefined;
+const worldImages = snapshot ? await Promise.all(snapshot.recentWorlds.map((world) => world.image ? resolveSiteImage(world.image) : undefined)) : [];
+const profileHref = snapshot ? `https://vrchat.com/home/user/${encodeURIComponent(snapshot.profile.id)}` : undefined;
+---
+<BaseLayout title={`VRChat · ${siteConfig.site.title}`} description={t('vrchatIntro')}>
+  {snapshot ? <>
+    <section class="vrchat-profile shell">
+      <div class="vrchat-profile-art">
+        {profileImage ? <SiteImage src={profileImage} alt={`${snapshot.profile.displayName} VRChat profile`} widths={[640, 960, 1280]} sizes="(max-width: 820px) 100vw, 46vw" loading="eager" fetchpriority="high" /> : <span>{snapshot.profile.displayName.slice(0, 1)}</span>}
+        <div class="vrchat-profile-orbit" aria-hidden="true"><i></i><i></i><i></i></div>
+      </div>
+      <div class="vrchat-profile-copy">
+        <div class="vrchat-profile-kicker"><p class="eyebrow"><Icon name="badge" size={15} /> VRChat</p>{snapshot.profile.status && <span class="vrchat-presence"><i></i>{snapshot.profile.status}</span>}</div>
+        <h1>{snapshot.profile.displayName}</h1>
+        {snapshot.profile.statusDescription && <p class="vrchat-status">{snapshot.profile.statusDescription}</p>}
+        {snapshot.profile.bio && <p>{snapshot.profile.bio}</p>}
+        <div class="vrchat-profile-metrics">
+          <span><Icon name="users" size={16} /><b>{formatNumber(snapshot.profile.friendCount)}</b>{t('vrchatFriends')}</span>
+          <span><Icon name="map-pin" size={16} /><b>{snapshot.recentWorlds.length}</b>{t('vrchatRecentWorlds')}</span>
+        </div>
+        {profileHref && <a class="primary-action" href={profileHref} target="_blank" rel="noreferrer">{t('vrchatOpenProfile')} <Icon name="arrow-up-right" size={16} /></a>}
+      </div>
+    </section>
+    <section class="vrchat-worlds shell">
+      <div class="section-heading"><div><p class="eyebrow"><Icon name="map-pin" size={14} /> {t('vrchatRecentlyVisited')}</p><h2>{t('vrchatWorldTitle')}</h2><p>{t('vrchatWorldIntro')}</p></div><small class="vrchat-synced"><Icon name="refresh" size={13} /> {t('vrchatSynced')} {formatDate(new Date(snapshot.syncedAt), { dateStyle: 'medium', timeStyle: 'short' })}</small></div>
+      <div class="vrchat-world-grid">{snapshot.recentWorlds.map((world, index) => <VrchatWorldCard world={world} image={worldImages[index]} index={index} />)}</div>
+    </section>
+  </> : <section class="vrchat-empty shell">
+    <p class="eyebrow"><Icon name="badge" size={15} /> VRChat</p>
+    <h1>{t('vrchatNotSyncedTitle')}</h1>
+    <p>{siteConfig.integrations.vrchat.enabled ? t('vrchatNotSyncedEnabled') : t('vrchatNotSyncedDisabled')}</p>
+    <code>npm run wblog -- vrchat login</code>
+  </section>}
+</BaseLayout>

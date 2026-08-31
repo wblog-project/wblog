@@ -15,6 +15,10 @@ npm run wblog -- <command>
 | `post new <title>` | 创建 Blog Markdown，可复制封面 |
 | `life new <title>` | 创建 Life 内容并复制照片 |
 | `gallery new <title>` | 创建 Gallery 内容并复制图片 |
+| `vrchat login` | 交互式登录并生成第一份 VRChat 静态快照 |
+| `vrchat sync` | 使用本地 Cookie 刷新资料和最近世界 |
+| `vrchat status` | 查看会话及快照状态，不输出 Cookie |
+| `vrchat logout` | 删除本地会话并保留最后快照 |
 | `asset add <file>` | 添加通用或分类素材 |
 | `doctor` | 检查环境、配置、内容和 Git |
 | `build` | 运行生产构建 |
@@ -53,3 +57,11 @@ npm run wblog -- gallery new "Night" \
 ```
 
 CLI 不覆盖同名目标，并验证图片扩展名与目录逃逸。
+
+## VRChat 同步
+
+首次运行 `npm run wblog -- vrchat login`。密码和 2FA 只在当前终端输入，不会保存；成功后仅把会话 Cookie 写入 `site/.wblog/vrchat/session.json`，并生成只包含显示名、公开简介、好友总数和最近世界的快照。
+
+所有 production build 会自动尝试刷新；API 不可用或会话过期时继续使用旧快照。强制离线构建使用 `WBLOG_OFFLINE=1 npm run build`。
+
+`site/images/generated/vrchat/` 是同步器专用目录，请勿放入手工素材。每次成功同步都会先在私有临时目录完整下载，再整体替换该目录；旧地图、旧扩展名和临时文件会被清理。同步中断则恢复上一版图片和快照。

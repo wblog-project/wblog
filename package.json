@@ -11,6 +11,7 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "prebuild": "node ./bin/wblog.mjs vrchat sync --build-hook",
     "build": "astro check && astro build",
     "preview": "astro preview",
     "test": "vitest run",
@@ -25,6 +26,9 @@
     "@fontsource-variable/space-grotesk": "^5.2.8",
     "astro": "^7.2.9",
     "@lucide/astro": "^1.37.0",
+    "keyv-file": "^5.1.2",
+    "prompts": "^2.4.2",
+    "vrchat": "^2.22.8",
     "yaml": "^2.9.0",
     "zod": "^4.5.4"
   },

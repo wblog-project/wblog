@@ -26,12 +26,14 @@ navigation:
   - { label: About, href: /about }
   - { label: Blog, href: /blog }
   - { label: Gallery, href: /gallery }
+  - { label: VRChat, href: /vrchat }
 socials:
   - { name: GitHub, icon: github, url: https://github.com/YOUR_NAME }
 integrations:
   github: { enabled: false, username: "", maxRepos: 3 }
   steam: { enabled: false, steamId: "" }
   bilibili: { enabled: false, mid: "", maxVideos: 3 }
+  vrchat: { enabled: false, maxRecentWorlds: 6 }
   fallbackActivities:
     - type: project
       title: Personal Website
@@ -41,6 +43,7 @@ integrations:
       image: ""
 home:
   modules:
+    vrchat: true
     activities: true
     dailyLife: true
     blog: true

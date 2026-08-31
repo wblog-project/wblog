@@ -88,6 +88,78 @@ h1, h2, h3 { font-family: 'Space Grotesk Variable', sans-serif; letter-spacing: 
 .platform-strip strong { font-family: 'Space Grotesk Variable'; }
 .platform-strip small { color: var(--muted); font-size: 12px; }
 
+@keyframes vrchat-rise { from { opacity: 0; transform: translateY(22px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes vrchat-orbit { to { transform: rotate(360deg); } }
+@keyframes vrchat-pulse { 50% { opacity: .55; box-shadow: 0 0 0 7px rgba(127, 245, 184, .06), 0 0 18px rgba(127, 245, 184, .65); } }
+@keyframes vrchat-sheen { from { transform: translateX(-180%) skewX(-24deg); } to { transform: translateX(320%) skewX(-24deg); } }
+
+.vrchat-home { position: relative; margin-top: 42px; padding: 22px; overflow: hidden; border: 1px solid rgba(197, 151, 255, .42); border-radius: 24px; background: radial-gradient(circle at 8% 0, rgba(174, 90, 255, .25), transparent 35%), linear-gradient(135deg, rgba(31, 24, 69, .96), rgba(12, 18, 42, .94)); box-shadow: 0 20px 60px rgba(4, 5, 24, .32); animation: vrchat-rise .65s cubic-bezier(.2, .75, .2, 1) both; }
+.vrchat-home::before { content: ''; position: absolute; width: 320px; height: 320px; right: -130px; top: -190px; border: 1px solid rgba(225, 190, 255, .12); border-radius: 50%; box-shadow: 0 0 0 34px rgba(201, 149, 255, .025), 0 0 0 78px rgba(201, 149, 255, .018); pointer-events: none; }
+.vrchat-home-profile { display: grid; grid-template-columns: 116px 1fr auto; gap: 20px; align-items: center; }
+.vrchat-home-avatar { width: 116px; height: 116px; display: grid; place-items: center; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 22px; background: #231b4c; color: #e9c9ff; font: 700 48px 'Space Grotesk Variable'; }
+.vrchat-home-avatar picture, .vrchat-home-avatar img { width: 100%; height: 100%; }
+.vrchat-home-avatar img { object-fit: cover; }
+.vrchat-home-profile h2 { margin: 0; font-size: 31px; }
+.vrchat-home-profile p:not(.eyebrow) { max-width: 620px; margin: 3px 0 8px; overflow: hidden; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; }
+.vrchat-home-profile > div:nth-child(2) > span { display: flex; align-items: center; gap: 6px; color: #dbcaf5; font-size: 12px; }
+.vrchat-home-worlds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; }
+
+.vrchat-profile { min-height: 520px; display: grid; grid-template-columns: .95fr 1.05fr; gap: clamp(30px, 5vw, 64px); align-items: center; padding-top: 48px; }
+.vrchat-profile-art { position: relative; aspect-ratio: 4 / 3; display: grid; place-items: center; overflow: hidden; isolation: isolate; border: 1px solid var(--line-strong); border-radius: 30px; background: linear-gradient(145deg, #3b2467, #121937); color: #e9c9ff; font: 700 100px 'Space Grotesk Variable'; box-shadow: 0 28px 80px rgba(0, 0, 0, .42); animation: vrchat-rise .7s cubic-bezier(.2, .75, .2, 1) both; }
+.vrchat-profile-art::before { content: ''; position: absolute; inset: -30%; z-index: 1; background: radial-gradient(circle at 70% 20%, rgba(238, 192, 255, .22), transparent 28%); pointer-events: none; }
+.vrchat-profile-art::after { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(0deg, rgba(7, 10, 29, .58), transparent 48%), linear-gradient(120deg, transparent 62%, rgba(210, 168, 255, .1)); pointer-events: none; }
+.vrchat-profile-art picture, .vrchat-profile-art img { width: 100%; height: 100%; }
+.vrchat-profile-art img { object-fit: cover; }
+.vrchat-profile-copy { animation: vrchat-rise .7s .1s cubic-bezier(.2, .75, .2, 1) both; }
+.vrchat-profile-kicker { display: flex; align-items: center; gap: 12px; }
+.vrchat-profile-kicker .eyebrow { margin: 0; }
+.vrchat-presence { display: inline-flex; align-items: center; gap: 7px; padding: 4px 9px; border: 1px solid rgba(144, 240, 191, .18); border-radius: 999px; background: rgba(89, 171, 131, .09); color: #bdebd3; font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.vrchat-presence i { width: 6px; height: 6px; border-radius: 50%; background: #7ff5b8; box-shadow: 0 0 0 4px rgba(127, 245, 184, .07), 0 0 11px rgba(127, 245, 184, .65); animation: vrchat-pulse 2.6s ease-in-out infinite; }
+.vrchat-profile-copy h1 { margin: 11px 0 13px; font-size: clamp(3.4rem, 7vw, 6.2rem); line-height: .9; }
+.vrchat-profile-copy > p:not(.eyebrow, .vrchat-status) { max-width: 600px; color: var(--muted); font-size: 16px; white-space: pre-line; }
+.vrchat-status { color: #edd8ff; font-size: 18px; }
+.vrchat-profile-metrics { display: flex; gap: 12px; margin: 24px 0; }
+.vrchat-profile-metrics span { min-width: 130px; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0 8px; padding: 12px 15px; border: 1px solid var(--line); border-radius: 13px; color: var(--muted); font-size: 11px; }
+.vrchat-profile-metrics svg { grid-row: 1 / 3; color: #d7a9ff; }
+.vrchat-profile-metrics b { color: #fff; font: 700 20px 'Space Grotesk Variable'; }
+.vrchat-profile-orbit { position: absolute; inset: 7%; z-index: 2; border: 1px solid rgba(238, 211, 255, .18); border-radius: 50%; pointer-events: none; animation: vrchat-orbit 24s linear infinite; }
+.vrchat-profile-orbit i { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #f1c9ff; box-shadow: 0 0 16px #d993ff; }
+.vrchat-profile-orbit i:nth-child(1) { top: 8%; left: 18%; }
+.vrchat-profile-orbit i:nth-child(2) { right: 2%; top: 52%; width: 4px; height: 4px; }
+.vrchat-profile-orbit i:nth-child(3) { bottom: 5%; left: 42%; width: 5px; height: 5px; }
+.vrchat-profile-copy .primary-action, .vrchat-home .primary-action { position: relative; overflow: hidden; }
+.vrchat-profile-copy .primary-action::before, .vrchat-home .primary-action::before { content: ''; position: absolute; inset: -20% auto -20% 0; width: 28%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .18), transparent); animation: vrchat-sheen 5.5s 1.2s ease-in-out infinite; pointer-events: none; }
+.vrchat-profile-copy .primary-action svg, .vrchat-home .primary-action svg { transition: transform .2s; }
+.vrchat-profile-copy .primary-action:hover svg, .vrchat-home .primary-action:hover svg { transform: translate(2px, -2px); }
+.vrchat-worlds { padding: 48px 0 82px; animation: vrchat-rise .7s .18s cubic-bezier(.2, .75, .2, 1) both; }
+.vrchat-synced { display: flex; align-items: center; gap: 6px; padding-top: 26px; color: var(--muted); }
+.vrchat-world-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 17px; margin-top: 22px; }
+.vrchat-world-card { position: relative; min-width: 0; overflow: hidden; isolation: isolate; border: 1px solid var(--line); border-radius: 19px; background: linear-gradient(155deg, rgba(20, 27, 57, .97), rgba(10, 15, 36, .97)); box-shadow: 0 14px 38px rgba(2, 4, 18, .18); transition: transform .28s cubic-bezier(.2, .75, .2, 1), border-color .28s, box-shadow .28s; animation: vrchat-rise .58s calc(.22s + var(--card-index) * .07s) cubic-bezier(.2, .75, .2, 1) both; }
+.vrchat-world-card:hover { transform: translateY(-7px); border-color: var(--line-strong); box-shadow: 0 22px 52px rgba(2, 4, 18, .38), 0 0 0 1px rgba(190, 145, 255, .08); }
+.vrchat-world-art { position: relative; aspect-ratio: 4 / 3; display: grid; place-items: center; overflow: hidden; background: linear-gradient(145deg, #332057, #17264b); color: #dcbcff; }
+.vrchat-world-art::after { content: ''; position: absolute; inset: 42% 0 0; background: linear-gradient(transparent, rgba(8, 12, 31, .5)); pointer-events: none; }
+.vrchat-world-art picture, .vrchat-world-art img { width: 100%; height: 100%; }
+.vrchat-world-art img { object-fit: cover; transition: transform .55s cubic-bezier(.2, .75, .2, 1), filter .35s; }
+.vrchat-world-card:hover .vrchat-world-art img { transform: scale(1.055); filter: saturate(1.08) contrast(1.03); }
+.vrchat-world-index { position: absolute; top: 13px; right: 13px; z-index: 2; padding: 3px 8px; border: 1px solid rgba(255, 255, 255, .22); border-radius: 999px; background: rgba(7, 10, 27, .62); color: #f4eaff; font: 700 10px 'Space Grotesk Variable'; letter-spacing: .08em; backdrop-filter: blur(8px); }
+.vrchat-world-copy { padding: 17px 18px 19px; }
+.vrchat-world-copy small { display: flex; align-items: center; gap: 5px; color: #e3bfff; font-weight: 700; }
+.vrchat-world-copy h3 { margin: 6px 30px 7px 0; overflow: hidden; font-size: 21px; text-overflow: ellipsis; white-space: nowrap; }
+.vrchat-world-copy > p { min-height: 58px; margin: 0; overflow: hidden; color: var(--muted); font-size: 12px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.vrchat-world-copy > div { display: flex; flex-wrap: wrap; gap: 6px 13px; margin-top: 14px; color: #cfc4e5; font-size: 10px; }
+.vrchat-world-copy > div span { display: inline-flex; align-items: center; gap: 4px; }
+.vrchat-world-copy > div svg { color: #d8adf7; }
+.vrchat-world-card > svg { position: absolute; right: 17px; bottom: 22px; color: #d1b5f7; }
+.vrchat-world-card.compact { border-radius: 15px; }
+.vrchat-world-card.compact .vrchat-world-art { aspect-ratio: 16 / 8.5; }
+.vrchat-world-card.compact .vrchat-world-copy { padding: 14px 15px 16px; }
+.vrchat-world-card.compact .vrchat-world-copy h3 { font-size: 17px; }
+.vrchat-world-card.compact .vrchat-world-copy > p { min-height: 36px; -webkit-line-clamp: 2; }
+.vrchat-empty { min-height: 68vh; display: grid; align-content: center; justify-items: start; }
+.vrchat-empty h1 { max-width: 760px; margin: 5px 0 10px; font-size: clamp(3rem, 7vw, 5.6rem); line-height: .94; }
+.vrchat-empty > p:not(.eyebrow) { color: var(--muted); font-size: 17px; }
+.vrchat-empty code { margin-top: 12px; padding: 12px 15px; border: 1px solid var(--line); border-radius: 10px; background: rgba(10, 14, 34, .8); color: #efcdff; }
+
 .section { padding-top: 52px; }
 .section-heading, .panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
 .section-heading h2, .panel-heading h2 { margin: 0; font-size: 22px; }
@@ -232,6 +304,9 @@ h1, h2, h3 { font-family: 'Space Grotesk Variable', sans-serif; letter-spacing: 
   .hero-copy { padding: 54px 0 22px; }
   .hero-art { width: min(100%, 590px); height: 300px; justify-self: center; }
   .platform-strip { grid-template-columns: repeat(2, 1fr); margin-top: 20px; }
+  .vrchat-home-worlds, .vrchat-world-grid { grid-template-columns: repeat(2, 1fr); }
+  .vrchat-home-worlds .vrchat-world-card:last-child { display: none; }
+  .vrchat-profile { grid-template-columns: 1fr 1fr; gap: 28px; }
   .activity-card { flex-basis: calc(65% - 8px); }
   .content-grid { grid-template-columns: 1fr; }
   .gallery-panel { grid-column: auto; }
@@ -261,6 +336,19 @@ h1, h2, h3 { font-family: 'Space Grotesk Variable', sans-serif; letter-spacing: 
   .platform-strip > a > svg:last-child { display: none; }
   .platform-strip strong { font-size: 13px; }
   .platform-strip small { font-size: 10px; }
+  .vrchat-home { margin-top: 26px; padding: 17px; }
+  .vrchat-home-profile { grid-template-columns: 76px 1fr; gap: 13px; }
+  .vrchat-home-avatar { width: 76px; height: 76px; border-radius: 16px; font-size: 34px; }
+  .vrchat-home-profile h2 { font-size: 23px; }
+  .vrchat-home-profile .primary-action { grid-column: 1 / -1; justify-content: center; }
+  .vrchat-home-worlds, .vrchat-world-grid { grid-template-columns: 1fr; }
+  .vrchat-home-worlds .vrchat-world-card:nth-child(n+2) { display: none; }
+  .vrchat-profile { grid-template-columns: 1fr; gap: 24px; padding-top: 36px; }
+  .vrchat-profile-art { width: min(100%, 440px); justify-self: center; }
+  .vrchat-profile-copy h1 { font-size: 3.7rem; }
+  .vrchat-profile-metrics { flex-direction: column; }
+  .vrchat-worlds .section-heading { display: grid; }
+  .vrchat-synced { padding-top: 0; }
   .section { padding-top: 42px; }
   .activity-card { flex-basis: 84%; }
   .scroll-hint { display: none; }
